@@ -119,12 +119,12 @@ public class SassCompilerMojo extends AbstractMojo {
         sassScript.append("begin\n");
         sassScript.append("require 'rubygems'\n");
         sassScript.append("rescue LoadError\n");
-        sassScript.append("puts 'Missing RubyGems'; exit\n");
+        sassScript.append("raise 'Missing RubyGems'\n");
         sassScript.append("end\n");
         sassScript.append("begin\n");
         sassScript.append("require 'sass/plugin'\n");
         sassScript.append("rescue LoadError\n");
-        sassScript.append("puts 'Missing Sass gem'; exit\n");
+        sassScript.append("raise 'Missing Sass gem'\n");
         sassScript.append("end")
         sassScript.append("Sass::Plugin.options.merge!(\n");
         
