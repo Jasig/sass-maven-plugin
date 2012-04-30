@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:merge="http://maven.apache.org/plugin-merge" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<parent>
+        <groupId>org.jasig.parent</groupId>
+        <artifactId>jasig-parent</artifactId>
+        <version>33</version>
+	</parent>
+
+	<modelVersion>4.0.0</modelVersion>
+    <groupId>org.jasig.maven</groupId>
+    <artifactId>sass-maven-plugin</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+	<packaging>maven-plugin</packaging>
+
+    <name>SASS Compiler Plugin</name>
+    <description>Maven Plugin that compiles SASS files</description>
+    
+    <properties>
+        <project.build.sourceVersion>1.6</project.build.sourceVersion>
+        <project.build.targetVersion>1.6</project.build.targetVersion>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+    
+    <dependencies>
+        <dependency>
+            <groupId>me.n4u.sass</groupId>
+            <artifactId>sass-gems</artifactId>
+            <version>3.1.15</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jruby</groupId>
+            <artifactId>jruby-complete</artifactId>
+            <version>1.6.7.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-plugin-api</artifactId>
+            <version>3.0.4</version>
+        </dependency>
+    </dependencies>
+    
+    
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.jasig.maven</groupId>
+                    <artifactId>maven-site-plugin</artifactId>
+                    <configuration>
+                        <defaultMergePolicy>MERGE</defaultMergePolicy>
+                        <reportPlugins combine.children="append">
+                            <plugin>
+                                <artifactId>maven-plugin-plugin</artifactId>
+                                <version>2.9</version>
+                            </plugin>
+                        </reportPlugins>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+</project>
