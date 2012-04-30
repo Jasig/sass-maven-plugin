@@ -101,13 +101,15 @@ public class SassCompilerMojo extends AbstractMojo {
      * &lt;cache>true&lt;/cache>
      * &lt;always_update>true&lt;/always_update>
      * &lt;cache_location>${project.build.directory}/sass_cache&lt;/cache_location>
+     * &lt;style>:expanded&lt;/style>
      *
      * @parameter
      */
     private Map<String, String> sassOptions = new HashMap<String, String>(ImmutableMap.of(
             "unix_newlines", "true", 
             "cache", "true",
-            "always_update", "true"));
+            "always_update", "true",
+            "style", ":expanded"));
 
     
     public void execute() throws MojoExecutionException, MojoFailureException {
