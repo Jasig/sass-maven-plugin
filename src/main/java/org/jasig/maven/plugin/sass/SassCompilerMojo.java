@@ -116,8 +116,16 @@ public class SassCompilerMojo extends AbstractMojo {
         final Log log = this.getLog();
         
         final StringBuilder sassScript = new StringBuilder();
+        sassScript.append("begin\n");
         sassScript.append("require 'rubygems'\n");
+        sassScript.append("rescue LoadError\n");
+        sassScript.append("puts 'Missing RubyGems'; exit\n");
+        sassScript.append("end\n");
+        sassScript.append("begin\n");
         sassScript.append("require 'sass/plugin'\n");
+        sassScript.append("rescue LoadError\n");
+        sassScript.append("puts 'Missing Sass gem'; exit\n");
+        sassScript.append("end")
         sassScript.append("Sass::Plugin.options.merge!(\n");
         
         //If not explicitly set place the cache location in the target dir
