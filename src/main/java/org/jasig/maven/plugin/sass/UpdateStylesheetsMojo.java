@@ -46,7 +46,7 @@ import com.google.common.collect.ImmutableMap;
  * 
  * @goal update-stylesheets
  */
-public class SassCompilerMojo extends AbstractMojo {
+public class UpdateStylesheetsMojo extends AbstractMojo {
     /**
      * Directory containing SASS files, defaults to the Maven Web application sources directory (src/main/webapp)
      *
