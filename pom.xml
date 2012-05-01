@@ -24,11 +24,6 @@
     
     <dependencies>
         <dependency>
-            <groupId>me.n4u.sass</groupId>
-            <artifactId>sass-gems</artifactId>
-            <version>3.1.15</version>
-        </dependency>
-        <dependency>
             <groupId>org.jruby</groupId>
             <artifactId>jruby-complete</artifactId>
             <version>1.6.7.1</version>
@@ -39,8 +34,6 @@
             <version>3.0.4</version>
         </dependency>
     </dependencies>
-    
-    
 
     <build>
         <pluginManagement>
@@ -58,7 +51,66 @@
                         </reportPlugins>
                     </configuration>
                 </plugin>
+                <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+                <plugin>
+                  <groupId>org.eclipse.m2e</groupId>
+                  <artifactId>lifecycle-mapping</artifactId>
+                  <version>1.0.0</version>
+                  <configuration>
+                    <lifecycleMappingMetadata>
+                      <pluginExecutions>
+                        <pluginExecution>
+                          <pluginExecutionFilter>
+                            <groupId>org.codehaus.mojo</groupId>
+                            <artifactId>exec-maven-plugin</artifactId>
+                            <versionRange>[1.2.1,)</versionRange>
+                            <goals>
+                              <goal>exec</goal>
+                            </goals>
+                          </pluginExecutionFilter>
+                          <action>
+                            <ignore></ignore>
+                          </action>
+                        </pluginExecution>
+                      </pluginExecutions>
+                    </lifecycleMappingMetadata>
+                  </configuration>
+                </plugin>
             </plugins>
         </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.2.1</version>
+                <executions>
+                    <execution>
+                        <id>install-gems</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>java</executable>
+                            <arguments>
+                                <argument>-classpath</argument>
+                                <classpath/>
+                                <argument>org.jruby.Main</argument>
+                                <argument>-S</argument>
+                                <argument>gem</argument>
+                                <argument>install</argument>
+                                <argument>-i</argument>
+                                <argument>${project.build.directory}/classes</argument>
+                                <argument>--no-rdoc</argument>
+                                <argument>--no-ri</argument>
+                                <argument>fssm</argument>
+                                <argument>sass</argument>
+                                <argument>listen</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
     </build>
 </project>

@@ -19,35 +19,28 @@
 package org.jasig.maven.plugin.sass;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
 
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.codehaus.plexus.util.StringUtils;
 
-import com.google.common.collect.ImmutableMap;
-
 /**
  * @goal watch
  */
-public class WatchMojo extends AbstractMojo {
-    /**
-     * Directory containing SASS files
-     * 
-     * @parameter expression="${watch.sassSource}"
-     * @required
-     */
-    private File sassSourceDirectory;
+public class WatchMojo extends AbstractSassMojo {
     
     /**
      * Defines output directory 
@@ -56,91 +49,112 @@ public class WatchMojo extends AbstractMojo {
      * @required
      */
     private File outputDirectory;
-    
-    /**
-     * @parameter expression="${encoding}" default-value="${project.build.directory}
-     * @required
-     */
-    private File buildDirectory;
-    
-    /**
-     * Defines options for Sass::Plugin.options. See http://sass-lang.com/docs/yardoc/file.SASS_REFERENCE.html#options
-     * If the value is a string it must by quoted in the maven configuration:
-     * &lt;cache_location>'/tmp/sass'&lt;/cache_location>
-     * <br/>
-     * If no options are set the default configuration set is used which is:
-     * &lt;unix_newlines>true&lt;/unix_newlines>
-     * &lt;cache>true&lt;/cache>
-     * &lt;always_update>true&lt;/always_update>
-     * &lt;cache_location>${project.build.directory}/sass_cache&lt;/cache_location>
-     * &lt;style>:expanded&lt;/style>
-     *
-     * @parameter
-     */
-    private Map<String, String> sassOptions = new HashMap<String, String>(ImmutableMap.of(
-            "unix_newlines", "true", 
-            "cache", "true",
-            "always_update", "true",
-            "style", ":expanded"));
 
-    
     public void execute() throws MojoExecutionException, MojoFailureException {
         final Log log = this.getLog();
         
-        final StringBuilder sassScript = new StringBuilder();
-        sassScript.append("require 'rubygems'\n");
-        sassScript.append("require 'sass/plugin'\n");
-        sassScript.append("Sass::Plugin.options.merge!(\n");
+        final Set<Future<Object>> watchedThreads = Collections.newSetFromMap(new ConcurrentHashMap<Future<Object>, Boolean>());
         
-        //If not explicitly set place the cache location in the target dir
-        if (!sassOptions.containsKey("cache_location")) {
-            final File sassCacheDir = newCanonicalFile(buildDirectory, "sass_cache");
-            sassOptions.put("cache_location", "'" + sassCacheDir.toString() + "'");
-        }
-        
-        //If not explicitly set write the css output location
-        sassOptions.put("css_location", "'" + outputDirectory.toString() + "'");
-        sassOptions.put("template_location", "'" + sassSourceDirectory.toString() + "'");
-        
-        //Add the plugin configuration options
-        for (final Iterator<Entry<String, String>> entryItr = sassOptions.entrySet().iterator(); entryItr.hasNext();) {
-            final Entry<String, String> optEntry = entryItr.next();
-            final String opt = optEntry.getKey();
-            final String value = optEntry.getValue();
-            sassScript.append("    :").append(opt).append(" => ").append(value);
-            if (entryItr.hasNext()) {
-                sassScript.append(",");
+        //Add shutdown hook that cleans up watch threads
+        final Runnable shutdownRunnable = new Runnable() {
+            @Override
+            public void run() {
+                log.info("Shutting down " + watchedThreads.size() + " SASS Watch Threads");
+                
+                while (!watchedThreads.isEmpty()) {
+                    for (final Iterator<Future<Object>> futureItr = watchedThreads.iterator(); futureItr.hasNext(); ) {
+                        final Future<Object> future = futureItr.next();
+                        if (future.isDone()) {
+                            futureItr.remove();
+                        }
+                        else {
+                            future.cancel(true);
+                        }
+                    }
+                    
+                    //Don't make this a hard spin loop, yield
+                    Thread.yield();
+                }
             }
-            sassScript.append("\n");
+        };
+        Runtime.getRuntime().addShutdownHook(new Thread(shutdownRunnable, "SASS Watch Shutdown Hook"));
+        
+        final Set<String> sassDirectories = this.findSassDirs();
+        for (final String sassSubDir : sassDirectories) {
+            final File sassDir = newCanonicalFile(sassSourceDirectory, sassSubDir);
+            final File sassDestDir = newCanonicalFile(new File(outputDirectory, sassSubDir), relativeOutputDirectory);
+
+            final String sassSourceDirStr = sassDir.toString();
+            final String cssDestDirStr = sassDestDir.toString();
+            final int index = StringUtils.differenceAt(sassSourceDirStr, cssDestDirStr);
+            
+            //Generate the SASS Script
+            final String sassScript = this.buildSassScript(sassSourceDirStr, cssDestDirStr);
+            log.debug("SASS Ruby Script:\n" + sassScript);        
+            
+            final Runnable watchRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Started watching SASS Template: " + sassDir + " => " + sassDestDir);
+                        }
+                        else {
+                            log.info("Started watching SASS Template: " + sassSourceDirStr.substring(index) + " => " + cssDestDirStr.substring(index));
+                        }
+                        
+                        final ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
+                        final ScriptEngine jruby = scriptEngineManager.getEngineByName("jruby");
+                        jruby.eval(sassScript);
+                        
+                        log.info("Stopped watching SASS Template: " + sassSourceDirStr.substring(index) + " => " + cssDestDirStr.substring(index));
+                    }
+                    catch (Exception e) {
+                        log.error("Error while watching SASS Template: " + sassSourceDirStr.substring(index) + " => " + cssDestDirStr.substring(index), e);
+                    }                    
+                }
+            };
+            
+            final FutureTask<Object> future = new FutureTask<Object>(watchRunnable, null);
+            final Thread watchThread = new Thread(future, "SASS Watch " + sassSourceDirStr.substring(index));
+            watchedThreads.add(future);
+            watchThread.start();
         }
-        sassScript.append(")\n");
-        sassScript.append("Sass::Plugin.watch");
         
-        log.debug("SASS Ruby Script:\n" + sassScript);
         
-        //Execute the SASS Compliation Ruby Script
-        final String sassSourceDirStr = this.sassSourceDirectory.toString();
-        final String outputDirStr = this.outputDirectory.toString();
-        final int index = StringUtils.differenceAt(sassSourceDirStr, outputDirStr);
-        
-        log.info("Watching SASS Templates in " + sassSourceDirStr.substring(index) + " and writing CSS to " + outputDirStr.substring(index));
-        final ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
-        final ScriptEngine jruby = scriptEngineManager.getEngineByName("jruby");
-        try {
-            jruby.eval(sassScript.toString());
-        }
-        catch (ScriptException e) {
-            throw new MojoExecutionException("Failed to execute SASS ruby script:\n" + sassScript, e);
+        //Wait for all watcher threads to complete
+        while (!watchedThreads.isEmpty()) {
+            for (final Iterator<Future<Object>> futureItr = watchedThreads.iterator(); futureItr.hasNext(); ) {
+                final Future<Object> future = futureItr.next();
+                try {
+                    future.get(1, TimeUnit.SECONDS);
+                    futureItr.remove(); //remove futures that have completed
+                }
+                catch (InterruptedException e) {
+                    //Stop what we were doing, we were interrupted
+                    return;
+                }
+                catch (ExecutionException e) {
+                    //ignore
+                }
+                catch (TimeoutException e) {
+                    //ignore
+                }
+            }
         }
     }
-    
-    private File newCanonicalFile(File parent, String child) throws MojoExecutionException {
-        final File f = new File(parent, child);
-        try {
-            return f.getCanonicalFile();
-        }
-        catch (IOException e) {
-            throw new MojoExecutionException("Failed to create canonical File for: " + f, e);
-        }
+
+
+    protected String buildSassScript(String sassSourceDir, String cssDestDir) throws MojoExecutionException {
+        final StringBuilder sassScript = new StringBuilder();
+        
+        //Set write the css output location
+        sassOptions.put("template_location", "'" + sassSourceDir + "'");
+        sassOptions.put("css_location", "'" + cssDestDir + "'");
+        
+        this.buildSassOptions(sassScript);
+        sassScript.append("Sass::Plugin.watch");
+        
+        return sassScript.toString();
     }
 }
