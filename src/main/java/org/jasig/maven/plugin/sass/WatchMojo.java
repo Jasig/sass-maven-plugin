@@ -19,18 +19,13 @@
 package org.jasig.maven.plugin.sass;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -49,101 +44,83 @@ public class WatchMojo extends AbstractSassMojo {
      * @required
      */
     private File outputDirectory;
+    
+    /**
+     * Specifies the skin name to watch, must match part of the skin string
+     *
+     * @parameter expression="${watch.skin}"
+     * @required
+     */
+    private String skin;
 
     public void execute() throws MojoExecutionException, MojoFailureException {
         final Log log = this.getLog();
         
-        final Set<Future<Object>> watchedThreads = Collections.newSetFromMap(new ConcurrentHashMap<Future<Object>, Boolean>());
-        
-        //Add shutdown hook that cleans up watch threads
-        final Runnable shutdownRunnable = new Runnable() {
-            @Override
-            public void run() {
-                log.info("Shutting down " + watchedThreads.size() + " SASS Watch Threads");
-                
-                while (!watchedThreads.isEmpty()) {
-                    for (final Iterator<Future<Object>> futureItr = watchedThreads.iterator(); futureItr.hasNext(); ) {
-                        final Future<Object> future = futureItr.next();
-                        if (future.isDone()) {
-                            futureItr.remove();
-                        }
-                        else {
-                            future.cancel(true);
-                        }
-                    }
-                    
-                    //Don't make this a hard spin loop, yield
-                    Thread.yield();
-                }
-            }
-        };
-        Runtime.getRuntime().addShutdownHook(new Thread(shutdownRunnable, "SASS Watch Shutdown Hook"));
-        
-        final Set<String> sassDirectories = this.findSassDirs();
-        for (final String sassSubDir : sassDirectories) {
-            final File sassDir = newCanonicalFile(sassSourceDirectory, sassSubDir);
-            final File sassDestDir = newCanonicalFile(new File(outputDirectory, sassSubDir), relativeOutputDirectory);
+        final String sassSubDir = this.findSassDir(this.skin);
+            
+        final File sassDir = newCanonicalFile(sassSourceDirectory, sassSubDir);
+        final File sassDestDir = newCanonicalFile(new File(outputDirectory, sassSubDir), relativeOutputDirectory);
 
-            final String sassSourceDirStr = sassDir.toString();
-            final String cssDestDirStr = sassDestDir.toString();
-            final int index = StringUtils.differenceAt(sassSourceDirStr, cssDestDirStr);
-            
-            //Generate the SASS Script
-            final String sassScript = this.buildSassScript(sassSourceDirStr, cssDestDirStr);
-            log.debug("SASS Ruby Script:\n" + sassScript);        
-            
-            final Runnable watchRunnable = new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        if (log.isDebugEnabled()) {
-                            log.debug("Started watching SASS Template: " + sassDir + " => " + sassDestDir);
-                        }
-                        else {
-                            log.info("Started watching SASS Template: " + sassSourceDirStr.substring(index) + " => " + cssDestDirStr.substring(index));
-                        }
-                        
-                        final ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
-                        final ScriptEngine jruby = scriptEngineManager.getEngineByName("jruby");
-                        jruby.eval(sassScript);
-                        
-                        log.info("Stopped watching SASS Template: " + sassSourceDirStr.substring(index) + " => " + cssDestDirStr.substring(index));
-                    }
-                    catch (Exception e) {
-                        log.error("Error while watching SASS Template: " + sassSourceDirStr.substring(index) + " => " + cssDestDirStr.substring(index), e);
-                    }                    
-                }
-            };
-            
-            final FutureTask<Object> future = new FutureTask<Object>(watchRunnable, null);
-            final Thread watchThread = new Thread(future, "SASS Watch " + sassSourceDirStr.substring(index));
-            watchedThreads.add(future);
-            watchThread.start();
+        final String sassSourceDirStr = sassDir.toString();
+        final String cssDestDirStr = sassDestDir.toString();
+        final int index = StringUtils.differenceAt(sassSourceDirStr, cssDestDirStr);
+        
+        //Generate the SASS Script
+        final String sassScript = this.buildSassScript(sassSourceDirStr, cssDestDirStr);
+        log.debug("SASS Ruby Script:\n" + sassScript);     
+        
+        if (log.isDebugEnabled()) {
+            log.debug("Started watching SASS Template: " + sassDir + " => " + sassDestDir);
+        }
+        else {
+            log.info("Started watching SASS Template: " + sassSourceDirStr.substring(index) + " => " + cssDestDirStr.substring(index));
         }
         
-        
-        //Wait for all watcher threads to complete
-        while (!watchedThreads.isEmpty()) {
-            for (final Iterator<Future<Object>> futureItr = watchedThreads.iterator(); futureItr.hasNext(); ) {
-                final Future<Object> future = futureItr.next();
-                try {
-                    future.get(1, TimeUnit.SECONDS);
-                    futureItr.remove(); //remove futures that have completed
-                }
-                catch (InterruptedException e) {
-                    //Stop what we were doing, we were interrupted
-                    return;
-                }
-                catch (ExecutionException e) {
-                    //ignore
-                }
-                catch (TimeoutException e) {
-                    //ignore
-                }
-            }
+        final ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
+        final ScriptEngine jruby = scriptEngineManager.getEngineByName("jruby");
+        try {
+            jruby.eval(sassScript);
+        }
+        catch (ScriptException e) {
+            throw new MojoExecutionException("Failed to execute SASS Watch Script:\n" + sassScript, e);
         }
     }
 
+    protected String findSassDir(String skin) throws MojoFailureException {
+        final List<String> matches = new LinkedList<String>();
+        
+        final Set<String> sassDirectories = this.findSassDirs();
+        for (final String sassSubDir : sassDirectories) {
+            if (sassSubDir.contains(skin)) {
+                matches.add(sassSubDir);
+            }
+        }
+        
+        if (matches.size() == 1) {
+            return matches.get(0);
+        }
+        
+        if (matches.isEmpty()) {
+            final StringBuilder msg = new StringBuilder();
+            msg.append("None of the SASS template directories match skin name: ").append(skin).append("\n");
+            msg.append("\tSASS template directories:\n");
+            for (final String sassSubDir : sassDirectories) {
+                msg.append("\t\t").append(sassSubDir).append("\n");
+            }
+            
+            throw new MojoFailureException(msg.toString());
+        }
+        
+
+        final StringBuilder msg = new StringBuilder();
+        msg.append("Multiple SASS template directories match skin name: ").append(skin).append("\n");
+        msg.append("\tMatching SASS template directories:\n");
+        for (final String sassSubDir : matches) {
+            msg.append("\t\t").append(sassSubDir).append("\n");
+        }
+        
+        throw new MojoFailureException(msg.toString());
+    }
 
     protected String buildSassScript(String sassSourceDir, String cssDestDir) throws MojoExecutionException {
         final StringBuilder sassScript = new StringBuilder();

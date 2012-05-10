@@ -47,6 +47,24 @@ public class UpdateStylesheetsMojo extends AbstractSassMojo {
     public void execute() throws MojoExecutionException, MojoFailureException {
         final Log log = this.getLog();
         
+        final String sassScript = buildSassScript();
+        log.debug("SASS Ruby Script:\n" + sassScript);
+        
+        //Execute the SASS Compliation Ruby Script
+        log.info("Compiling SASS Templates");
+        final ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
+        final ScriptEngine jruby = scriptEngineManager.getEngineByName("jruby");
+        try {
+            jruby.eval(sassScript);
+        }
+        catch (ScriptException e) {
+            throw new MojoExecutionException("Failed to execute SASS ruby script:\n" + sassScript, e);
+        }
+    }
+
+    protected String buildSassScript() throws MojoExecutionException {
+        final Log log = this.getLog();
+        
         final StringBuilder sassScript = new StringBuilder();
         buildSassOptions(sassScript);
 
@@ -66,17 +84,6 @@ public class UpdateStylesheetsMojo extends AbstractSassMojo {
         }
         sassScript.append("Sass::Plugin.update_stylesheets");
         
-        log.debug("SASS Ruby Script:\n" + sassScript);
-        
-        //Execute the SASS Compliation Ruby Script
-        log.info("Compiling " + sassDirectories.size() + " SASS Templates");
-        final ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
-        final ScriptEngine jruby = scriptEngineManager.getEngineByName("jruby");
-        try {
-            jruby.eval(sassScript.toString());
-        }
-        catch (ScriptException e) {
-            throw new MojoExecutionException("Failed to execute SASS ruby script:\n" + sassScript, e);
-        }
+        return sassScript.toString();
     }
 }
