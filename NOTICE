@@ -24,7 +24,6 @@ This project includes:
   Plexus Classworlds under The Apache Software License, Version 2.0
   Plexus Common Utilities under The Apache Software License, Version 2.0
   SASS Compiler Plugin under Apache License Version 2.0
-  SASS Gems - Gem in a Jar for SASS under MIT License
   Sisu Guava - Core Library under The Apache Software License, Version 2.0
   Sisu Guice - Core Library under The Apache Software License, Version 2.0
   Sisu-Inject-Bean : Aggregate OSGi bundle under The Apache Software License, Version 2.0 or Eclipse Public License, Version 1.0

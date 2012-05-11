@@ -16,6 +16,12 @@
     <name>SASS Compiler Plugin</name>
     <description>Maven Plugin that compiles SASS files</description>
     
+    <scm>
+        <connection>scm:git:git://github.com/Jasig/sass-maven-plugin.git</connection>
+        <developerConnection>scm:git:git@github.com:Jasig/sass-maven-plugin.git</developerConnection>
+        <url>https://github.com/Jasig/sass-maven-plugin</url>
+    </scm>
+    
     <properties>
         <project.build.sourceVersion>1.6</project.build.sourceVersion>
         <project.build.targetVersion>1.6</project.build.targetVersion>
@@ -79,6 +85,7 @@
             </plugins>
         </pluginManagement>
         <plugins>
+            <!-- Downloads and installs the required Ruby GEMs into the classpath -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
@@ -111,6 +118,30 @@
                     </execution>
                 </executions>
             </plugin>
+                <plugin>
+                    <groupId>org.jasig.maven</groupId>
+                    <artifactId>maven-site-plugin</artifactId>
+                    <configuration>
+                        <defaultMergePolicy>MERGE</defaultMergePolicy>
+                        <reportPlugins combine.children="append">
+                            <plugin>
+                                <artifactId>maven-plugin-plugin</artifactId>
+                                <version>2.9</version>
+                            </plugin>
+                        </reportPlugins>
+                    </configuration>
+                </plugin>
         </plugins>
     </build>
+    <profiles>
+        <profile>
+            <id>manual-site</id>
+            <distributionManagement>
+                <site>
+                    <id>developer.jasig</id>
+                    <url>${jasig-site-dist-base}/sass-maven-plugin/${project.version}</url>
+                </site>
+            </distributionManagement>
+        </profile>
+    </profiles>
 </project>
