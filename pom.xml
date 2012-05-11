@@ -10,7 +10,7 @@
 	<modelVersion>4.0.0</modelVersion>
     <groupId>org.jasig.maven</groupId>
     <artifactId>sass-maven-plugin</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
 	<packaging>maven-plugin</packaging>
 
     <name>SASS Compiler Plugin</name>
@@ -75,7 +75,7 @@
                             </goals>
                           </pluginExecutionFilter>
                           <action>
-                            <ignore></ignore>
+                            <ignore />
                           </action>
                         </pluginExecution>
                       </pluginExecutions>
@@ -101,7 +101,7 @@
                             <executable>java</executable>
                             <arguments>
                                 <argument>-classpath</argument>
-                                <classpath/>
+                                <classpath />
                                 <argument>org.jruby.Main</argument>
                                 <argument>-S</argument>
                                 <argument>gem</argument>
