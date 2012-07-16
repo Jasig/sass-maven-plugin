@@ -28,28 +28,30 @@ import javax.script.ScriptException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
+
 import org.codehaus.plexus.util.StringUtils;
 
 /**
  * Mojo that compiles SASS Templates into CSS files. Uses JRuby to execute a generated script that calls the SASS GEM
- * 
+ *
  * @goal update-stylesheets
  */
 public class UpdateStylesheetsMojo extends AbstractSassMojo {
-    
+
     /**
      * @parameter expression="${encoding}" default-value="${project.build.directory}/${project.build.finalName}
      * @required
      */
     private File baseOutputDirectory;
 
-    
+
+    @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         final Log log = this.getLog();
-        
+
         final String sassScript = buildSassScript();
         log.debug("SASS Ruby Script:\n" + sassScript);
-        
+
         //Execute the SASS Compliation Ruby Script
         log.info("Compiling SASS Templates");
         final ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
@@ -57,33 +59,33 @@ public class UpdateStylesheetsMojo extends AbstractSassMojo {
         try {
             jruby.eval(sassScript);
         }
-        catch (ScriptException e) {
+        catch (final ScriptException e) {
             throw new MojoExecutionException("Failed to execute SASS ruby script:\n" + sassScript, e);
         }
     }
 
     protected String buildSassScript() throws MojoExecutionException {
         final Log log = this.getLog();
-        
+
         final StringBuilder sassScript = new StringBuilder();
         buildSassOptions(sassScript);
 
         //Add the SASS Template locations
         final Set<String> sassDirectories = this.findSassDirs();
         for (final String sassSubDir : sassDirectories) {
-            final File sassDir = newCanonicalFile(sassSourceDirectory, sassSubDir);
-            final File sassDestDir = newCanonicalFile(new File(baseOutputDirectory, sassSubDir), relativeOutputDirectory);
+            final File sassDir = newCanonicalFile(this.sassSourceDirectory, sassSubDir);
+            final File sassDestDir = newCanonicalFile(new File(this.baseOutputDirectory, sassSubDir), this.relativeOutputDirectory);
 
-            final String sassDirStr = sassDir.toString();
-            final String sassDestDirStr = sassDestDir.toString();
+            final String sassDirStr = escapePath(sassDir.toString());
+            final String sassDestDirStr = escapePath(sassDestDir.toString());
             final int index = StringUtils.differenceAt(sassDirStr, sassDestDirStr);
             log.info("Queing SASS Template for compile: " + sassDirStr.substring(index) + " => " + sassDestDirStr.substring(index));
-            
-            sassScript.append("Sass::Plugin.add_template_location('").append(sassDir).append("', '")
-                    .append(sassDestDir).append("')\n");
+
+            sassScript.append("Sass::Plugin.add_template_location('").append(sassDirStr).append("', '")
+            .append(sassDestDirStr).append("')\n");
         }
         sassScript.append("Sass::Plugin.update_stylesheets");
-        
+
         return sassScript.toString();
     }
 }

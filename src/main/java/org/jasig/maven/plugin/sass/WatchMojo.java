@@ -30,21 +30,22 @@ import javax.script.ScriptException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
+
 import org.codehaus.plexus.util.StringUtils;
 
 /**
  * @goal watch
  */
 public class WatchMojo extends AbstractSassMojo {
-    
+
     /**
-     * Defines output directory 
+     * Defines output directory
      *
      * @parameter expression="${watch.output}"
      * @required
      */
     private File outputDirectory;
-    
+
     /**
      * Specifies the skin name to watch, must match part of the skin string
      *
@@ -53,53 +54,55 @@ public class WatchMojo extends AbstractSassMojo {
      */
     private String skin;
 
+    @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         final Log log = this.getLog();
-        
-        final String sassSubDir = this.findSassDir(this.skin);
-            
-        final File sassDir = newCanonicalFile(sassSourceDirectory, sassSubDir);
-        final File sassDestDir = newCanonicalFile(new File(outputDirectory, sassSubDir), relativeOutputDirectory);
 
-        final String sassSourceDirStr = sassDir.toString();
-        final String cssDestDirStr = sassDestDir.toString();
+        final String sassSubDir = this.findSassDir(this.skin);
+
+        final File sassDir = newCanonicalFile(this.sassSourceDirectory, sassSubDir);
+        final File sassDestDir = newCanonicalFile(new File(this.outputDirectory, sassSubDir), this.relativeOutputDirectory);
+
+        final String sassSourceDirStr = escapePath(sassDir.toString());
+        final String cssDestDirStr = escapePath(sassDestDir.toString());
+
         final int index = StringUtils.differenceAt(sassSourceDirStr, cssDestDirStr);
-        
+
         //Generate the SASS Script
         final String sassScript = this.buildSassScript(sassSourceDirStr, cssDestDirStr);
-        log.debug("SASS Ruby Script:\n" + sassScript);     
-        
+        log.debug("SASS Ruby Script:\n" + sassScript);
+
         if (log.isDebugEnabled()) {
-            log.debug("Started watching SASS Template: " + sassDir + " => " + sassDestDir);
+            log.debug("Started watching SASS Template: " + sassSourceDirStr + " => " + cssDestDirStr);
         }
         else {
             log.info("Started watching SASS Template: " + sassSourceDirStr.substring(index) + " => " + cssDestDirStr.substring(index));
         }
-        
+
         final ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
         final ScriptEngine jruby = scriptEngineManager.getEngineByName("jruby");
         try {
             jruby.eval(sassScript);
         }
-        catch (ScriptException e) {
+        catch (final ScriptException e) {
             throw new MojoExecutionException("Failed to execute SASS Watch Script:\n" + sassScript, e);
         }
     }
 
-    protected String findSassDir(String skin) throws MojoFailureException {
+    protected String findSassDir(final String skin) throws MojoFailureException {
         final List<String> matches = new LinkedList<String>();
-        
+
         final Set<String> sassDirectories = this.findSassDirs();
         for (final String sassSubDir : sassDirectories) {
             if (sassSubDir.contains(skin)) {
                 matches.add(sassSubDir);
             }
         }
-        
+
         if (matches.size() == 1) {
             return matches.get(0);
         }
-        
+
         if (matches.isEmpty()) {
             final StringBuilder msg = new StringBuilder();
             msg.append("None of the SASS template directories match skin name: ").append(skin).append("\n");
@@ -107,10 +110,10 @@ public class WatchMojo extends AbstractSassMojo {
             for (final String sassSubDir : sassDirectories) {
                 msg.append("\t\t").append(sassSubDir).append("\n");
             }
-            
+
             throw new MojoFailureException(msg.toString());
         }
-        
+
 
         final StringBuilder msg = new StringBuilder();
         msg.append("Multiple SASS template directories match skin name: ").append(skin).append("\n");
@@ -118,20 +121,20 @@ public class WatchMojo extends AbstractSassMojo {
         for (final String sassSubDir : matches) {
             msg.append("\t\t").append(sassSubDir).append("\n");
         }
-        
+
         throw new MojoFailureException(msg.toString());
     }
 
-    protected String buildSassScript(String sassSourceDir, String cssDestDir) throws MojoExecutionException {
+    protected String buildSassScript(final String sassSourceDir, final String cssDestDir) throws MojoExecutionException {
         final StringBuilder sassScript = new StringBuilder();
-        
+
         //Set write the css output location
-        sassOptions.put("template_location", "'" + sassSourceDir + "'");
-        sassOptions.put("css_location", "'" + cssDestDir + "'");
-        
+        this.sassOptions.put("template_location", "'" + sassSourceDir + "'");
+        this.sassOptions.put("css_location", "'" + cssDestDir + "'");
+
         this.buildSassOptions(sassScript);
         sassScript.append("Sass::Plugin.watch");
-        
+
         return sassScript.toString();
     }
 }
