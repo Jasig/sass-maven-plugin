@@ -19,6 +19,7 @@
 package org.jasig.maven.plugin.sass;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Set;
 
 import javax.script.ScriptEngine;
@@ -52,6 +53,7 @@ public class UpdateStylesheetsMojo extends AbstractSassMojo {
         
         //Execute the SASS Compliation Ruby Script
         log.info("Compiling SASS Templates");
+        
         final ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
         final ScriptEngine jruby = scriptEngineManager.getEngineByName("jruby");
         try {
@@ -71,16 +73,15 @@ public class UpdateStylesheetsMojo extends AbstractSassMojo {
         //Add the SASS Template locations
         final Set<String> sassDirectories = this.findSassDirs();
         for (final String sassSubDir : sassDirectories) {
-            final File sassDir = newCanonicalFile(sassSourceDirectory, sassSubDir);
-            final File sassDestDir = newCanonicalFile(new File(baseOutputDirectory, sassSubDir), relativeOutputDirectory);
+            final String sassDir = newCanonicalFile(sassSourceDirectory, sassSubDir);
+            final String sassDestDir = newCanonicalFile(new File(baseOutputDirectory, sassSubDir), relativeOutputDirectory);
 
-            final String sassDirStr = sassDir.toString();
-            final String sassDestDirStr = sassDestDir.toString();
-            final int index = StringUtils.differenceAt(sassDirStr, sassDestDirStr);
-            log.info("Queing SASS Template for compile: " + sassDirStr.substring(index) + " => " + sassDestDirStr.substring(index));
+            final int index = StringUtils.differenceAt(sassDir, sassDestDir);
+            log.info("Queing SASS Template for compile: " + sassDir.substring(index) + " => " + sassDestDir.substring(index));
             
             sassScript.append("Sass::Plugin.add_template_location('").append(sassDir).append("', '")
-                    .append(sassDestDir).append("')\n");
+                                .append(sassDestDir).append("')\n");
+            
         }
         sassScript.append("Sass::Plugin.update_stylesheets");
         

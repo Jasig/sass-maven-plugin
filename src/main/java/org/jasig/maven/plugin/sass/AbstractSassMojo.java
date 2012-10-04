@@ -106,7 +106,7 @@ public abstract class AbstractSassMojo extends AbstractMojo {
         
         //If not explicitly set place the cache location in the target dir
         if (!sassOptions.containsKey("cache_location")) {
-            final File sassCacheDir = newCanonicalFile(buildDirectory, "sass_cache");
+            final String sassCacheDir = newCanonicalFile(buildDirectory, "sass_cache");
             sassOptions.put("cache_location", "'" + sassCacheDir.toString() + "'");
         }
         
@@ -124,10 +124,10 @@ public abstract class AbstractSassMojo extends AbstractMojo {
         sassScript.append(")\n");
     }
     
-    protected File newCanonicalFile(File parent, String child) throws MojoExecutionException {
+    protected String newCanonicalFile(File parent, String child) throws MojoExecutionException {
         final File f = new File(parent, child);
         try {
-            return f.getCanonicalFile();
+            return f.getCanonicalPath().replace('\\', '/');
         }
         catch (IOException e) {
             throw new MojoExecutionException("Failed to create canonical File for: " + f, e);
