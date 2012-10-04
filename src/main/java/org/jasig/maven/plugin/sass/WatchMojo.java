@@ -58,22 +58,20 @@ public class WatchMojo extends AbstractSassMojo {
         
         final String sassSubDir = this.findSassDir(this.skin);
             
-        final File sassDir = newCanonicalFile(sassSourceDirectory, sassSubDir);
-        final File sassDestDir = newCanonicalFile(new File(outputDirectory, sassSubDir), relativeOutputDirectory);
+        final String sassDir = newCanonicalFile(sassSourceDirectory, sassSubDir);
+        final String sassDestDir = newCanonicalFile(new File(outputDirectory, sassSubDir), relativeOutputDirectory);
 
-        final String sassSourceDirStr = sassDir.toString();
-        final String cssDestDirStr = sassDestDir.toString();
-        final int index = StringUtils.differenceAt(sassSourceDirStr, cssDestDirStr);
+        final int index = StringUtils.differenceAt(sassDir, sassDestDir);
         
         //Generate the SASS Script
-        final String sassScript = this.buildSassScript(sassSourceDirStr, cssDestDirStr);
+        final String sassScript = this.buildSassScript(sassDir, sassDestDir);
         log.debug("SASS Ruby Script:\n" + sassScript);     
         
         if (log.isDebugEnabled()) {
             log.debug("Started watching SASS Template: " + sassDir + " => " + sassDestDir);
         }
         else {
-            log.info("Started watching SASS Template: " + sassSourceDirStr.substring(index) + " => " + cssDestDirStr.substring(index));
+            log.info("Started watching SASS Template: " + sassDestDir.substring(index) + " => " + sassDestDir.substring(index));
         }
         
         final ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
@@ -94,7 +92,7 @@ public class WatchMojo extends AbstractSassMojo {
             if (sassSubDir.contains(skin)) {
                 matches.add(sassSubDir);
             }
-        }
+        } 
         
         if (matches.size() == 1) {
             return matches.get(0);
