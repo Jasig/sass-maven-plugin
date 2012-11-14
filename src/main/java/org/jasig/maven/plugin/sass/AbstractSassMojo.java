@@ -105,13 +105,14 @@ public abstract class AbstractSassMojo extends AbstractMojo {
         sassScript.append("Sass::Plugin.options.merge!(\n");
         
         //If not explicitly set place the cache location in the target dir
-        if (!sassOptions.containsKey("cache_location")) {
-            final String sassCacheDir = newCanonicalFile(buildDirectory, "sass_cache");
-            sassOptions.put("cache_location", "'" + sassCacheDir.toString() + "'");
+        if (!this.sassOptions.containsKey("cache_location")) {
+            final File sassCacheDir = newCanonicalFile(this.buildDirectory, "sass_cache");
+            final String sassCacheDirStr = sassCacheDir.toString();
+            this.sassOptions.put("cache_location", "'" + escapePath(sassCacheDirStr) + "'");
         }
         
         //Add the plugin configuration options
-        for (final Iterator<Entry<String, String>> entryItr = sassOptions.entrySet().iterator(); entryItr.hasNext();) {
+        for (final Iterator<Entry<String, String>> entryItr = this.sassOptions.entrySet().iterator(); entryItr.hasNext();) {
             final Entry<String, String> optEntry = entryItr.next();
             final String opt = optEntry.getKey();
             final String value = optEntry.getValue();
@@ -123,25 +124,25 @@ public abstract class AbstractSassMojo extends AbstractMojo {
         }
         sassScript.append(")\n");
     }
-    
-    protected String newCanonicalFile(File parent, String child) throws MojoExecutionException {
+
+    protected File newCanonicalFile(final File parent, final String child) throws MojoExecutionException {
         final File f = new File(parent, child);
         try {
-            return f.getCanonicalPath().replace('\\', '/');
+            return f.getCanonicalFile();
         }
-        catch (IOException e) {
+        catch (final IOException e) {
             throw new MojoExecutionException("Failed to create canonical File for: " + f, e);
         }
     }
 
     protected Set<String> findSassDirs() {
         final Log log = this.getLog();
-        log.debug("Looking in " + sassSourceDirectory + " for dirs that match " + Arrays.toString(includes) + " but not " + Arrays.toString(excludes));
-        
+        log.debug("Looking in " + this.sassSourceDirectory + " for dirs that match " + Arrays.toString(this.includes) + " but not " + Arrays.toString(this.excludes));
+
         final DirectoryScanner directoryScanner = new DirectoryScanner();
-        directoryScanner.setIncludes(includes);
-        directoryScanner.setExcludes(excludes);
-        directoryScanner.setBasedir(sassSourceDirectory);
+        directoryScanner.setIncludes(this.includes);
+        directoryScanner.setExcludes(this.excludes);
+        directoryScanner.setBasedir(this.sassSourceDirectory);
         directoryScanner.scan();
         
         final Set<String> sassDirectories = new LinkedHashSet<String>();
@@ -151,4 +152,19 @@ public abstract class AbstractSassMojo extends AbstractMojo {
         
         return sassDirectories;
     }
+
+    /**
+     * Handles the usage of Windows style paths like c:\foo\bar\scss with
+     * the SASS mojos provided by this plugin.
+     *
+     * @param originalPath the original path in native system style
+     * @return the converted pathname
+     */
+    protected String escapePath(final String originalPath) {
+        if(originalPath == null || originalPath.isEmpty()) {
+            throw new IllegalArgumentException("No path given.");
+        }
+        return originalPath.replace("\\", "/");
+    }
+
 }

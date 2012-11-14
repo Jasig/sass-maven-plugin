@@ -19,7 +19,6 @@
 package org.jasig.maven.plugin.sass;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Set;
 
 import javax.script.ScriptEngine;
@@ -44,7 +43,8 @@ public class UpdateStylesheetsMojo extends AbstractSassMojo {
      */
     private File baseOutputDirectory;
 
-    
+
+    @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         final Log log = this.getLog();
         
@@ -53,13 +53,12 @@ public class UpdateStylesheetsMojo extends AbstractSassMojo {
         
         //Execute the SASS Compliation Ruby Script
         log.info("Compiling SASS Templates");
-        
         final ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
         final ScriptEngine jruby = scriptEngineManager.getEngineByName("jruby");
         try {
             jruby.eval(sassScript);
         }
-        catch (ScriptException e) {
+        catch (final ScriptException e) {
             throw new MojoExecutionException("Failed to execute SASS ruby script:\n" + sassScript, e);
         }
     }
@@ -73,15 +72,16 @@ public class UpdateStylesheetsMojo extends AbstractSassMojo {
         //Add the SASS Template locations
         final Set<String> sassDirectories = this.findSassDirs();
         for (final String sassSubDir : sassDirectories) {
-            final String sassDir = newCanonicalFile(sassSourceDirectory, sassSubDir);
-            final String sassDestDir = newCanonicalFile(new File(baseOutputDirectory, sassSubDir), relativeOutputDirectory);
+            final File sassDir = newCanonicalFile(this.sassSourceDirectory, sassSubDir);
+            final File sassDestDir = newCanonicalFile(new File(this.baseOutputDirectory, sassSubDir), this.relativeOutputDirectory);
 
-            final int index = StringUtils.differenceAt(sassDir, sassDestDir);
-            log.info("Queing SASS Template for compile: " + sassDir.substring(index) + " => " + sassDestDir.substring(index));
-            
-            sassScript.append("Sass::Plugin.add_template_location('").append(sassDir).append("', '")
-                                .append(sassDestDir).append("')\n");
-            
+            final String sassDirStr = escapePath(sassDir.toString());
+            final String sassDestDirStr = escapePath(sassDestDir.toString());
+            final int index = StringUtils.differenceAt(sassDirStr, sassDestDirStr);
+            log.info("Queing SASS Template for compile: " + sassDirStr.substring(index) + " => " + sassDestDirStr.substring(index));
+
+            sassScript.append("Sass::Plugin.add_template_location('").append(sassDirStr).append("', '")
+            .append(sassDestDirStr).append("')\n");
         }
         sassScript.append("Sass::Plugin.update_stylesheets");
         

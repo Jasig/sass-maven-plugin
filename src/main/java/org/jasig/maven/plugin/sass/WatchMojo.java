@@ -53,25 +53,29 @@ public class WatchMojo extends AbstractSassMojo {
      */
     private String skin;
 
+    @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         final Log log = this.getLog();
         
         final String sassSubDir = this.findSassDir(this.skin);
-            
-        final String sassDir = newCanonicalFile(sassSourceDirectory, sassSubDir);
-        final String sassDestDir = newCanonicalFile(new File(outputDirectory, sassSubDir), relativeOutputDirectory);
 
-        final int index = StringUtils.differenceAt(sassDir, sassDestDir);
+        final File sassDir = newCanonicalFile(this.sassSourceDirectory, sassSubDir);
+        final File sassDestDir = newCanonicalFile(new File(this.outputDirectory, sassSubDir), this.relativeOutputDirectory);
+
+        final String sassSourceDirStr = escapePath(sassDir.toString());
+        final String cssDestDirStr = escapePath(sassDestDir.toString());
+
+        final int index = StringUtils.differenceAt(sassSourceDirStr, cssDestDirStr);
         
         //Generate the SASS Script
-        final String sassScript = this.buildSassScript(sassDir, sassDestDir);
+        final String sassScript = this.buildSassScript(sassSourceDirStr, cssDestDirStr);
         log.debug("SASS Ruby Script:\n" + sassScript);     
         
         if (log.isDebugEnabled()) {
-            log.debug("Started watching SASS Template: " + sassDir + " => " + sassDestDir);
+            log.debug("Started watching SASS Template: " + sassSourceDirStr + " => " + cssDestDirStr);
         }
         else {
-            log.info("Started watching SASS Template: " + sassDestDir.substring(index) + " => " + sassDestDir.substring(index));
+            log.info("Started watching SASS Template: " + sassSourceDirStr.substring(index) + " => " + cssDestDirStr.substring(index));
         }
         
         final ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
@@ -79,12 +83,12 @@ public class WatchMojo extends AbstractSassMojo {
         try {
             jruby.eval(sassScript);
         }
-        catch (ScriptException e) {
+        catch (final ScriptException e) {
             throw new MojoExecutionException("Failed to execute SASS Watch Script:\n" + sassScript, e);
         }
     }
 
-    protected String findSassDir(String skin) throws MojoFailureException {
+    protected String findSassDir(final String skin) throws MojoFailureException {
         final List<String> matches = new LinkedList<String>();
         
         final Set<String> sassDirectories = this.findSassDirs();
@@ -92,7 +96,7 @@ public class WatchMojo extends AbstractSassMojo {
             if (sassSubDir.contains(skin)) {
                 matches.add(sassSubDir);
             }
-        } 
+        }
         
         if (matches.size() == 1) {
             return matches.get(0);
@@ -120,13 +124,13 @@ public class WatchMojo extends AbstractSassMojo {
         throw new MojoFailureException(msg.toString());
     }
 
-    protected String buildSassScript(String sassSourceDir, String cssDestDir) throws MojoExecutionException {
+    protected String buildSassScript(final String sassSourceDir, final String cssDestDir) throws MojoExecutionException {
         final StringBuilder sassScript = new StringBuilder();
         
         //Set write the css output location
-        sassOptions.put("template_location", "'" + sassSourceDir + "'");
-        sassOptions.put("css_location", "'" + cssDestDir + "'");
-        
+        this.sassOptions.put("template_location", "'" + sassSourceDir + "'");
+        this.sassOptions.put("css_location", "'" + cssDestDir + "'");
+
         this.buildSassOptions(sassScript);
         sassScript.append("Sass::Plugin.watch");
         
