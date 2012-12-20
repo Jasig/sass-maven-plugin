@@ -26,7 +26,7 @@
         <project.build.sourceVersion>1.6</project.build.sourceVersion>
         <project.build.targetVersion>1.6</project.build.targetVersion>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <sass.version>3.2.2</sass.version>
+        <sass.version>3.2.3</sass.version>
     </properties>
     
     <dependencies>
