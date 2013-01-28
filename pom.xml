@@ -10,7 +10,7 @@
 	<modelVersion>4.0.0</modelVersion>
     <groupId>org.jasig.maven</groupId>
     <artifactId>sass-maven-plugin</artifactId>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.0.2</version>
 	<packaging>maven-plugin</packaging>
 
     <name>SASS Compiler Plugin</name>
