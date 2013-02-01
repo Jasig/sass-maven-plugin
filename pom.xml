@@ -97,6 +97,38 @@
 		</pluginManagement>
 		<plugins>
 			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.2.1</version>
+				<configuration>
+					<executable>java</executable>
+					<arguments>
+						<argument>-classpath</argument>
+						<classpath />
+						<argument>org.jruby.Main</argument>
+						<argument>-S</argument>
+						<argument>gem</argument>
+						<argument>install</argument>
+						<argument>-i</argument>
+						<argument>${project.build.directory}/classes</argument>
+						<argument>--no-rdoc</argument>
+						<argument>--no-ri</argument>
+						<argument>--version</argument>
+						<argument>${sass.version}</argument>
+						<argument>sass</argument>
+					</arguments>
+				</configuration>
+				<executions>
+					<execution>
+						<id>install-gems</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<groupId>org.jasig.maven</groupId>
 				<artifactId>maven-site-plugin</artifactId>
 				<configuration>
@@ -120,44 +152,6 @@
 					<url>${jasig-site-dist-base}/sass-maven-plugin/${project.version}</url>
 				</site>
 			</distributionManagement>
-		</profile>
-		<profile>
-			<id>download-sass-gems</id>
-			<build>
-				<plugins>
-					<!-- Downloads and installs the required Ruby GEMs into the classpath -->
-					<plugin>
-						<groupId>org.codehaus.mojo</groupId>
-						<artifactId>exec-maven-plugin</artifactId>
-						<version>1.2.1</version>
-						<configuration>
-							<executable>java</executable>
-							<mainClass>org.jruby.Main</mainClass>
-							<arguments>
-								<argument>-S</argument>
-								<argument>gem</argument>
-								<argument>install</argument>
-								<argument>-i</argument>
-								<argument>${project.build.directory}/classes</argument>
-								<argument>--no-rdoc</argument>
-								<argument>--no-ri</argument>
-								<argument>--version</argument>
-								<argument>${sass.version}</argument>
-								<argument>sass</argument>
-							</arguments>
-						</configuration>
-						<executions>
-							<execution>
-								<id>install-gems</id>
-								<phase>generate-resources</phase>
-								<goals>
-									<goal>exec</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
 		</profile>
 	</profiles>
 </project>
