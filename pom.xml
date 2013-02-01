@@ -1,154 +1,163 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:merge="http://maven.apache.org/plugin-merge" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:merge="http://maven.apache.org/plugin-merge"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 	<parent>
-        <groupId>org.jasig.parent</groupId>
-        <artifactId>jasig-parent</artifactId>
-        <version>33</version>
+		<groupId>org.jasig.parent</groupId>
+		<artifactId>jasig-parent</artifactId>
+		<version>33</version>
 	</parent>
 
 	<modelVersion>4.0.0</modelVersion>
-    <groupId>org.jasig.maven</groupId>
-    <artifactId>sass-maven-plugin</artifactId>
-    <version>1.0.3-SNAPSHOT</version>
+	<groupId>org.jasig.maven</groupId>
+	<artifactId>sass-maven-plugin</artifactId>
+	<version>1.0.2-SNAPSHOT</version>
 	<packaging>maven-plugin</packaging>
 
-    <name>SASS Compiler Plugin</name>
-    <description>Maven Plugin that compiles SASS files</description>
-    
-    <scm>
-        <connection>scm:git:git://github.com/Jasig/sass-maven-plugin.git</connection>
-        <developerConnection>scm:git:git@github.com:Jasig/sass-maven-plugin.git</developerConnection>
-        <url>https://github.com/Jasig/sass-maven-plugin</url>
-    </scm>
-    
-    <properties>
-        <project.build.sourceVersion>1.6</project.build.sourceVersion>
-        <project.build.targetVersion>1.6</project.build.targetVersion>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <sass.version>3.2.5</sass.version>
-    </properties>
-    
-    <dependencies>
-        <dependency>
-            <groupId>org.jruby</groupId>
-            <artifactId>jruby-complete</artifactId>
-            <version>1.6.8</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.maven</groupId>
-            <artifactId>maven-plugin-api</artifactId>
-            <version>3.0.4</version>
-        </dependency>
-		<dependency>
-		  <groupId>com.google.guava</groupId>
-		  <artifactId>guava</artifactId>
-		  <version>13.0.1</version>
-	    </dependency>
-	    
-    </dependencies>
+	<name>SASS Compiler Plugin</name>
+	<description>Maven Plugin that compiles SASS files</description>
 
-    <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.jasig.maven</groupId>
-                    <artifactId>maven-site-plugin</artifactId>
-                    <configuration>
-                        <defaultMergePolicy>MERGE</defaultMergePolicy>
-                        <reportPlugins combine.children="append">
-                            <plugin>
-                                <artifactId>maven-plugin-plugin</artifactId>
-                                <version>2.9</version>
-                            </plugin>
-                        </reportPlugins>
-                    </configuration>
-                </plugin>
-                <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
-                <plugin>
-                  <groupId>org.eclipse.m2e</groupId>
-                  <artifactId>lifecycle-mapping</artifactId>
-                  <version>1.0.0</version>
-                  <configuration>
-                    <lifecycleMappingMetadata>
-                      <pluginExecutions>
-                        <pluginExecution>
-                          <pluginExecutionFilter>
-                            <groupId>org.codehaus.mojo</groupId>
-                            <artifactId>exec-maven-plugin</artifactId>
-                            <versionRange>[1.2.1,)</versionRange>
-                            <goals>
-                              <goal>exec</goal>
-                            </goals>
-                          </pluginExecutionFilter>
-                          <action>
-                            <ignore />
-                          </action>
-                        </pluginExecution>
-                      </pluginExecutions>
-                    </lifecycleMappingMetadata>
-                  </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-        <plugins>
-            <!-- Downloads and installs the required Ruby GEMs into the classpath -->
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>1.2.1</version>
-                <configuration>
-                    <executable>java</executable>
-                    <arguments>
-                        <argument>-classpath</argument>
-                        <classpath />
-                        <argument>org.jruby.Main</argument>
-                        <argument>-S</argument>
-                        <argument>gem</argument>
-                        <argument>install</argument>
-                        <argument>-i</argument>
-                        <argument>${project.build.directory}/classes</argument>
-                        <argument>--no-rdoc</argument>
-                        <argument>--no-ri</argument>
-                        <argument>--version</argument>
-                        <argument>${sass.version}</argument>
-                        <argument>sass</argument>
-                    </arguments>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>install-gems</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-                <plugin>
-                    <groupId>org.jasig.maven</groupId>
-                    <artifactId>maven-site-plugin</artifactId>
-                    <configuration>
-                        <defaultMergePolicy>MERGE</defaultMergePolicy>
-                        <reportPlugins combine.children="append">
-                            <plugin>
-                                <artifactId>maven-plugin-plugin</artifactId>
-                                <version>2.9</version>
-                            </plugin>
-                        </reportPlugins>
-                    </configuration>
-                </plugin>
-        </plugins>
-    </build>
-    <profiles>
-        <profile>
-            <id>manual-site</id>
-            <distributionManagement>
-                <site>
-                    <id>developer.jasig</id>
-                    <url>${jasig-site-dist-base}/sass-maven-plugin/${project.version}</url>
-                </site>
-            </distributionManagement>
-        </profile>
-    </profiles>
+	<scm>
+		<connection>scm:git:git://github.com/Jasig/sass-maven-plugin.git</connection>
+		<developerConnection>scm:git:git@github.com:Jasig/sass-maven-plugin.git</developerConnection>
+		<url>https://github.com/Jasig/sass-maven-plugin</url>
+	</scm>
+
+	<properties>
+		<project.build.sourceVersion>1.6</project.build.sourceVersion>
+		<project.build.targetVersion>1.6</project.build.targetVersion>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<sass.version>3.2.5</sass.version>
+		<maven.version>3.0.4</maven.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.jruby</groupId>
+			<artifactId>jruby-complete</artifactId>
+			<version>1.6.8</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.maven</groupId>
+			<artifactId>maven-plugin-api</artifactId>
+			<version>${maven.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.codehaus.plexus</groupId>
+			<artifactId>plexus-utils</artifactId>
+			<version>3.0.10</version>
+		</dependency>
+
+	</dependencies>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.jasig.maven</groupId>
+					<artifactId>maven-site-plugin</artifactId>
+					<configuration>
+						<defaultMergePolicy>MERGE</defaultMergePolicy>
+						<reportPlugins combine.children="append">
+							<plugin>
+								<artifactId>maven-plugin-plugin</artifactId>
+								<version>2.9</version>
+							</plugin>
+						</reportPlugins>
+					</configuration>
+				</plugin>
+				<!--This plugin's configuration is used to store Eclipse m2e settings 
+					only. It has no influence on the Maven build itself. -->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>org.codehaus.mojo</groupId>
+										<artifactId>exec-maven-plugin</artifactId>
+										<versionRange>[1.2.1,)</versionRange>
+										<goals>
+											<goal>exec</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore />
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+		<plugins>
+			<plugin>
+				<groupId>org.jasig.maven</groupId>
+				<artifactId>maven-site-plugin</artifactId>
+				<configuration>
+					<defaultMergePolicy>MERGE</defaultMergePolicy>
+					<reportPlugins combine.children="append">
+						<plugin>
+							<artifactId>maven-plugin-plugin</artifactId>
+							<version>2.9</version>
+						</plugin>
+					</reportPlugins>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	<profiles>
+		<profile>
+			<id>manual-site</id>
+			<distributionManagement>
+				<site>
+					<id>developer.jasig</id>
+					<url>${jasig-site-dist-base}/sass-maven-plugin/${project.version}</url>
+				</site>
+			</distributionManagement>
+		</profile>
+		<profile>
+			<id>download-sass-gems</id>
+			<build>
+				<plugins>
+					<!-- Downloads and installs the required Ruby GEMs into the classpath -->
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<version>1.2.1</version>
+						<configuration>
+							<executable>java</executable>
+							<mainClass>org.jruby.Main</mainClass>
+							<arguments>
+								<argument>-S</argument>
+								<argument>gem</argument>
+								<argument>install</argument>
+								<argument>-i</argument>
+								<argument>${project.build.directory}/classes</argument>
+								<argument>--no-rdoc</argument>
+								<argument>--no-ri</argument>
+								<argument>--version</argument>
+								<argument>${sass.version}</argument>
+								<argument>sass</argument>
+							</arguments>
+						</configuration>
+						<executions>
+							<execution>
+								<id>install-gems</id>
+								<phase>generate-resources</phase>
+								<goals>
+									<goal>exec</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>
