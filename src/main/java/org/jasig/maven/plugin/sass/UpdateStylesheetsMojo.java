@@ -18,9 +18,6 @@
  */
 package org.jasig.maven.plugin.sass;
 
-import java.io.File;
-import java.util.Set;
-
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -29,7 +26,6 @@ import javax.script.ScriptException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
-import org.codehaus.plexus.util.StringUtils;
 
 /**
  * Mojo that compiles SASS Templates into CSS files. Uses JRuby to execute a generated script that calls the SASS GEM
@@ -38,19 +34,6 @@ import org.codehaus.plexus.util.StringUtils;
  */
 public class UpdateStylesheetsMojo extends AbstractSassMojo {
 
-    /**
-     * @parameter expression="${encoding}" default-value="${project.build.directory}/${project.build.finalName}
-     * @required
-     */
-    private File baseOutputDirectory;
-
-    /**
-     * Fail the build if errors occur during compilation of sass/scss templates.
-     *
-     * @parameter default-value="true"
-     */
-    private boolean failOnError;
-
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         final Log log = this.getLog();
@@ -58,7 +41,7 @@ public class UpdateStylesheetsMojo extends AbstractSassMojo {
         final String sassScript = buildSassScript();
         log.debug("SASS Ruby Script:\n" + sassScript);
 
-        //Execute the SASS Compliation Ruby Script
+        //Execute the SASS Compilation Ruby Script
         log.info("Compiling SASS Templates");
         final ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
         final ScriptEngine jruby = scriptEngineManager.getEngineByName("jruby");
@@ -80,31 +63,9 @@ public class UpdateStylesheetsMojo extends AbstractSassMojo {
     }
 
     protected String buildSassScript() throws MojoExecutionException {
-        final Log log = this.getLog();
 
         final StringBuilder sassScript = new StringBuilder();
-        buildSassOptions(sassScript);
-
-        // set up compilation error reporting
-        sassScript.append("require 'java'\n");
-        sassScript.append("java_import org.jasig.maven.plugin.sass.CompilationErrors\n");
-        sassScript.append("$compilation_errors = CompilationErrors.new\n");
-        sassScript.append("Sass::Plugin.on_compilation_error {|error, template, css| $compilation_errors.add(template, error.message) }\n");
-
-        //Add the SASS Template locations
-        final Set<String> sassDirectories = this.findSassDirs();
-        for (final String sassSubDir : sassDirectories) {
-            final File sassDir = newCanonicalFile(this.sassSourceDirectory, sassSubDir);
-            final File sassDestDir = newCanonicalFile(new File(this.baseOutputDirectory, sassSubDir), this.relativeOutputDirectory);
-
-            final String sassDirStr = escapePath(sassDir.toString());
-            final String sassDestDirStr = escapePath(sassDestDir.toString());
-            final int index = StringUtils.differenceAt(sassDirStr, sassDestDirStr);
-            log.info("Queing SASS Template for compile: " + sassDirStr.substring(index) + " => " + sassDestDirStr.substring(index));
-
-            sassScript.append("Sass::Plugin.add_template_location('").append(sassDirStr).append("', '")
-            .append(sassDestDirStr).append("')\n");
-        }
+        buildBasicSASSScript(sassScript);
         sassScript.append("Sass::Plugin.update_stylesheets");
 
         return sassScript.toString();
