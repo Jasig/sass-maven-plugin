@@ -31,6 +31,7 @@ import org.apache.maven.plugin.logging.Log;
  * Mojo that compiles SASS Templates into CSS files. Uses JRuby to execute a generated script that calls the SASS GEM
  *
  * @goal update-stylesheets
+ * @phase process-sources
  */
 public class UpdateStylesheetsMojo extends AbstractSassMojo {
 
