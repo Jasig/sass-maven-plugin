@@ -4,7 +4,7 @@
 	<parent>
         <groupId>org.jasig.parent</groupId>
         <artifactId>jasig-parent</artifactId>
-        <version>33</version>
+        <version>34</version>
 	</parent>
 
 	<modelVersion>4.0.0</modelVersion>
@@ -39,6 +39,11 @@
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-plugin-api</artifactId>
             <version>3.0.4</version>
+        </dependency>
+        <dependency>
+          <groupId>commons-io</groupId>
+          <artifactId>commons-io</artifactId>
+          <version>2.4</version>
         </dependency>
 		<dependency>
 		  <groupId>com.google.guava</groupId>

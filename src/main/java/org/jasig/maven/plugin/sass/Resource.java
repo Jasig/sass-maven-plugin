@@ -21,6 +21,7 @@ package org.jasig.maven.plugin.sass;
 import java.io.File;
 import java.util.LinkedHashMap;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.maven.model.FileSet;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.StringUtils;
@@ -44,20 +45,23 @@ public class Resource {
 	protected File destination;
 	
 	public LinkedHashMap<String, String> getDirectoriesAndDestinations() {
-		
+	    
+	    final String sourceDirectory = source.getDirectory();
+	    
 		// Scan for directories
 		DirectoryScanner scanner = new DirectoryScanner();
-    	scanner.setBasedir(source.getDirectory());
+        scanner.setBasedir(sourceDirectory);
     	scanner.setIncludes(source.getIncludes().toArray(new String[source.getIncludes().size()]));
     	scanner.setExcludes(source.getExcludes().toArray(new String[source.getExcludes().size()]));
     	scanner.scan();
     	
+
     	LinkedHashMap<String, String> result = new LinkedHashMap<String, String>();
-    	result.put(source.getDirectory(), destination.toString());
+    	result.put(FilenameUtils.separatorsToUnix(sourceDirectory), FilenameUtils.separatorsToUnix(destination.toString()));
     	for (String included : scanner.getIncludedDirectories()) {
     		if (!included.isEmpty()) {
-	    		String subdir = StringUtils.difference(source.getDirectory(), included);
-	    		result.put(source.getDirectory() + "/" + included, destination.toString() + "/" + subdir);
+	    		String subdir = StringUtils.difference(sourceDirectory, included);
+	    		result.put(FilenameUtils.separatorsToUnix(sourceDirectory + "/" + included), FilenameUtils.separatorsToUnix(destination.toString() + "/" + subdir));
     		}
     	}
         return result;

@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
@@ -92,7 +93,7 @@ public abstract class AbstractSassMojo extends AbstractMojo {
         if (!this.sassOptions.containsKey("cache_location")) {
             final File sassCacheDir = new File(this.buildDirectory, "sass_cache");
             final String sassCacheDirStr = sassCacheDir.toString();
-            this.sassOptions.put("cache_location", "'" + escapePath(sassCacheDirStr) + "'");
+            this.sassOptions.put("cache_location", "'" + FilenameUtils.separatorsToUnix(sassCacheDirStr) + "'");
         }
         
         //Add the plugin configuration options
@@ -127,20 +128,6 @@ public abstract class AbstractSassMojo extends AbstractMojo {
     		    	.append("')\n");
         	}
 		}
-    }
-
-    /**
-     * Handles the usage of Windows style paths like c:\foo\bar\scss with
-     * the SASS mojos provided by this plugin.
-     *
-     * @param originalPath the original path in native system style
-     * @return the converted pathname
-     */
-    protected String escapePath(final String originalPath) {
-        if(originalPath == null || originalPath.isEmpty()) {
-            throw new IllegalArgumentException("No path given.");
-        }
-        return originalPath.replace("\\", "/");
     }
 
 }
