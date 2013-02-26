@@ -26,7 +26,7 @@
         <project.build.sourceVersion>1.6</project.build.sourceVersion>
         <project.build.targetVersion>1.6</project.build.targetVersion>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <sass.version>3.2.5</sass.version>
+        <compass.version>0.12.2</compass.version>
     </properties>
     
     <dependencies>
@@ -116,8 +116,8 @@
                         <argument>--no-rdoc</argument>
                         <argument>--no-ri</argument>
                         <argument>--version</argument>
-                        <argument>${sass.version}</argument>
-                        <argument>sass</argument>
+                        <argument>${compass.version}</argument>
+                        <argument>compass</argument>
                     </arguments>
                 </configuration>
                 <executions>
