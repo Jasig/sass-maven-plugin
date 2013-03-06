@@ -102,31 +102,54 @@
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>1.2.1</version>
-                <configuration>
-                    <executable>java</executable>
-                    <arguments>
-                        <argument>-classpath</argument>
-                        <classpath />
-                        <argument>org.jruby.Main</argument>
-                        <argument>-S</argument>
-                        <argument>gem</argument>
-                        <argument>install</argument>
-                        <argument>-i</argument>
-                        <argument>${project.build.directory}/classes</argument>
-                        <argument>--no-rdoc</argument>
-                        <argument>--no-ri</argument>
-                        <argument>--version</argument>
-                        <argument>${compass.version}</argument>
-                        <argument>compass</argument>
-                    </arguments>
-                </configuration>
                 <executions>
                     <execution>
-                        <id>install-gems</id>
+                        <id>install-compass</id>
                         <phase>generate-resources</phase>
                         <goals>
                             <goal>exec</goal>
                         </goals>
+                        <configuration>
+                            <executable>java</executable>
+                            <arguments>
+                                <argument>-classpath</argument>
+                                <classpath />
+                                <argument>org.jruby.Main</argument>
+                                <argument>-S</argument>
+                                <argument>gem</argument>
+                                <argument>install</argument>
+                                <argument>-i</argument>
+                                <argument>${project.build.directory}/classes</argument>
+                                <argument>--no-rdoc</argument>
+                                <argument>--no-ri</argument>
+                                <argument>--version</argument>
+                                <argument>${compass.version}</argument>
+                                <argument>compass</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>install-rb-fsevent</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>java</executable>
+                            <arguments>
+                                <argument>-classpath</argument>
+                                <classpath />
+                                <argument>org.jruby.Main</argument>
+                                <argument>-S</argument>
+                                <argument>gem</argument>
+                                <argument>install</argument>
+                                <argument>-i</argument>
+                                <argument>${project.build.directory}/classes</argument>
+                                <argument>--no-rdoc</argument>
+                                <argument>--no-ri</argument>
+                                <argument>rb-fsevent</argument>
+                            </arguments>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
