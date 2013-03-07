@@ -16,6 +16,7 @@ specific language governing permissions and limitations
 under the License.
 
 This project includes:
+  Commons IO under The Apache Software License, Version 2.0
   Guava: Google Core Libraries for Java under The Apache Software License, Version 2.0
   JRuby Complete under Common Public License - v 1.0 or GNU General Public License Version 2 or GNU Lesser General Public License Version 2.1
   Maven Artifact under The Apache Software License, Version 2.0
