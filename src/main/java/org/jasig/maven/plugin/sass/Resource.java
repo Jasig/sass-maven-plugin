@@ -20,7 +20,6 @@ package org.jasig.maven.plugin.sass;
 
 import java.io.File;
 import java.util.LinkedHashMap;
-import java.util.List;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.maven.model.FileSet;
