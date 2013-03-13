@@ -20,6 +20,7 @@ package org.jasig.maven.plugin.sass;
 
 import java.io.File;
 import java.util.LinkedHashMap;
+import java.util.List;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.maven.model.FileSet;
@@ -52,6 +53,9 @@ public class Resource {
 		DirectoryScanner scanner = new DirectoryScanner();
         scanner.setBasedir(sourceDirectory);
     	scanner.setIncludes(source.getIncludes().toArray(new String[source.getIncludes().size()]));
+
+    	// Add .svn folders by defauly
+    	source.getExcludes().add("**/.svn/**");
     	scanner.setExcludes(source.getExcludes().toArray(new String[source.getExcludes().size()]));
     	scanner.scan();
     	
