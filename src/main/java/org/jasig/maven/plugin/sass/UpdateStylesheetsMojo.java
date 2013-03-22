@@ -44,6 +44,7 @@ public class UpdateStylesheetsMojo extends AbstractSassMojo {
 
         //Execute the SASS Compilation Ruby Script
         log.info("Compiling SASS Templates");
+	System.setProperty("org.jruby.embed.localcontext.scope", "threadsafe");
         final ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
         final ScriptEngine jruby = scriptEngineManager.getEngineByName("jruby");
         try {
