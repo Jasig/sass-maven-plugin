@@ -25,10 +25,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
 /**
@@ -125,7 +122,15 @@ public abstract class AbstractSassMojo extends AbstractMojo {
             sassScript.append("Compass::Frameworks.register_directory('jar:'+ File.join(Compass.base_directory, 'frameworks/blueprint'))\n");
         }
 
-        sassScript.append("Sass::Plugin.options.merge!(\n");
+        // Get all template locations from resources and set option 'template_location' and
+        // 'css_location' (to override default "./public/stylesheets/sass", "./public/stylesheets")
+        // remaining locations are added later with 'add_template_location'
+        final Iterator<Entry<String, String>> templateLocations = getTemplateLocations();
+        if (templateLocations.hasNext()) {
+            Entry<String, String> location = templateLocations.next();
+            sassOptions.put("template_location", "'" + location.getKey() + "'");
+            sassOptions.put("css_location", "'" + location.getValue() + "'");
+        }
 
         //If not explicitly set place the cache location in the target dir
         if (!this.sassOptions.containsKey("cache_location")) {
@@ -135,6 +140,7 @@ public abstract class AbstractSassMojo extends AbstractMojo {
         }
 
         //Add the plugin configuration options
+        sassScript.append("Sass::Plugin.options.merge!(\n");
         for (final Iterator<Entry<String, String>> entryItr = this.sassOptions.entrySet().iterator(); entryItr.hasNext();) {
             final Entry<String, String> optEntry = entryItr.next();
             final String opt = optEntry.getKey();
@@ -147,6 +153,16 @@ public abstract class AbstractSassMojo extends AbstractMojo {
         }
         sassScript.append(")\n");
 
+        // add remaining template locations with 'add_template_location' (need to be done after options.merge)
+        while (templateLocations.hasNext()) {
+            Entry<String, String> location = templateLocations.next();
+            sassScript.append("Sass::Plugin.add_template_location('")
+                .append(location.getKey())
+                .append("', '")
+                .append(location.getValue())
+                .append("')\n");
+        }
+
         // set up compilation error reporting
         sassScript.append("java_import ");
         sassScript.append(CompilationErrors.class.getName());
@@ -154,18 +170,6 @@ public abstract class AbstractSassMojo extends AbstractMojo {
         sassScript.append("$compilation_errors = CompilationErrors.new\n");
         sassScript.append("Sass::Plugin.on_compilation_error {|error, template, css| $compilation_errors.add(template, error.message) }\n");
 
-        //Add the SASS template locations
-        for (final Resource source : this.resources) {
-            for (final Entry<String, String> entry : source.getDirectoriesAndDestinations().entrySet()) {
-                log.info("Queing SASS Template for compile: " + entry.getKey() + " => " + entry.getValue());
-
-                sassScript.append("Sass::Plugin.add_template_location('")
-                    .append(entry.getKey())
-                    .append("', '")
-                    .append(entry.getValue())
-                    .append("')\n");
-            }
-        }
         // make ruby give use some debugging info when requested
         if (log.isDebugEnabled()) {
             sassScript.append("require 'pp'\npp Sass::Plugin.options\n");
@@ -173,6 +177,18 @@ public abstract class AbstractSassMojo extends AbstractMojo {
                 sassScript.append("pp Compass::configuration\n");
             }
         }
+    }
+
+    private Iterator<Entry<String, String>> getTemplateLocations() {
+        final Log log = getLog();
+        List<Entry<String, String>> locations = new ArrayList<Entry<String, String>>();
+        for (final Resource source : this.resources) {
+            for (final Entry<String, String> entry : source.getDirectoriesAndDestinations().entrySet()) {
+                log.info("Queing SASS Template for compile: " + entry.getKey() + " => " + entry.getValue());
+                locations.add(entry);
+            }
+        }
+        return locations.iterator();
     }
 
 }

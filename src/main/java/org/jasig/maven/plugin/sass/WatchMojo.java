@@ -18,15 +18,14 @@
  */
 package org.jasig.maven.plugin.sass;
 
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.logging.Log;
+
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-
-import org.apache.commons.io.FilenameUtils;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugin.logging.Log;
 
 /**
  * @goal watch
@@ -63,9 +62,7 @@ public class WatchMojo extends AbstractSassMojo {
 
     
     protected String buildSassScript() throws MojoExecutionException {
-        this.sassOptions.put("template_location", "'" + FilenameUtils.separatorsToUnix(resources.get(0).source.getDirectory()) + "'");
-        this.sassOptions.put("css_location", "'" + FilenameUtils.separatorsToUnix(resources.get(0).destination.toString()) + "'");
-        
+
         final StringBuilder sassScript = new StringBuilder();
         buildBasicSASSScript(sassScript);		
         sassScript.append("Sass::Plugin.watch");
