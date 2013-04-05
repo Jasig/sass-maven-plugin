@@ -22,8 +22,13 @@ import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 
+import javax.script.ScriptContext;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 import java.io.File;
 import java.util.*;
 import java.util.Map.Entry;
@@ -103,6 +108,34 @@ public abstract class AbstractSassMojo extends AbstractMojo {
      * @parameter default-value="false"
      */
     protected boolean useCompass;
+
+    /**
+     * Execute the SASS Compilation Ruby Script
+     */
+    protected void executeSassScript(String sassScript) throws MojoExecutionException, MojoFailureException {
+        final Log log = this.getLog();
+        System.setProperty("org.jruby.embed.localcontext.scope", "threadsafe");
+
+        log.debug("Execute SASS Ruby Script:\n" + sassScript);
+
+        final ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
+        final ScriptEngine jruby = scriptEngineManager.getEngineByName("jruby");
+        try {
+            jruby.eval(sassScript);
+            final CompilationErrors compilationErrors = (CompilationErrors) jruby.getBindings(ScriptContext.ENGINE_SCOPE).get("compilation_errors");
+            if (compilationErrors.hasErrors()) {
+                for (CompilationErrors.CompilationError error : compilationErrors) {
+                    log.error("Compilation of template " + error.filename + " failed: " + error.message);
+                }
+                if (failOnError) {
+                    throw new MojoFailureException("SASS compilation encountered errors (see above for details).");
+                }
+            }
+        }
+        catch (final ScriptException e) {
+            throw new MojoExecutionException("Failed to execute SASS ruby script:\n" + sassScript, e);
+        }
+    }
 
     protected void buildBasicSASSScript(final StringBuilder sassScript) throws MojoExecutionException {
         final Log log = this.getLog();
