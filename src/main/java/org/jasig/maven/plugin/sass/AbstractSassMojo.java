@@ -18,19 +18,18 @@
  */
 package org.jasig.maven.plugin.sass;
 
+import com.google.common.collect.ImmutableMap;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.logging.Log;
+
 import java.io.File;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import org.apache.commons.io.FilenameUtils;
-import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.logging.Log;
-
-import com.google.common.collect.ImmutableMap;
 
 /**
  * Base for batching SASS Mojos.
@@ -170,7 +169,9 @@ public abstract class AbstractSassMojo extends AbstractMojo {
         // make ruby give use some debugging info when requested
         if (log.isDebugEnabled()) {
             sassScript.append("require 'pp'\npp Sass::Plugin.options\n");
-            sassScript.append("pp Compass::configuration\n");
+            if (useCompass) {
+                sassScript.append("pp Compass::configuration\n");
+            }
         }
     }
 
