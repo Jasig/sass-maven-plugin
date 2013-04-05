@@ -27,6 +27,7 @@
         <project.build.targetVersion>1.6</project.build.targetVersion>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <compass.version>0.12.2</compass.version>
+        <inotify.version>0.8.8</inotify.version>
     </properties>
     
     <dependencies>
@@ -125,6 +126,31 @@
                                 <argument>--version</argument>
                                 <argument>${compass.version}</argument>
                                 <argument>compass</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>install-inotify</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>java</executable>
+                            <arguments>
+                                <argument>-classpath</argument>
+                                <classpath />
+                                <argument>org.jruby.Main</argument>
+                                <argument>-S</argument>
+                                <argument>gem</argument>
+                                <argument>install</argument>
+                                <argument>-i</argument>
+                                <argument>${project.build.directory}/classes</argument>
+                                <argument>--no-rdoc</argument>
+                                <argument>--no-ri</argument>
+                                <argument>--version</argument>
+                                <argument>${inotify.version}</argument>
+                                <argument>rb-inotify</argument>
                             </arguments>
                         </configuration>
                     </execution>
