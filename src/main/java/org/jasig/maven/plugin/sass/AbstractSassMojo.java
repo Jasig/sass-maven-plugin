@@ -121,15 +121,11 @@ public abstract class AbstractSassMojo extends AbstractMojo {
         final ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
         final ScriptEngine jruby = scriptEngineManager.getEngineByName("jruby");
         try {
+            CompilerCallback compilerCallback = new CompilerCallback(log);
+            jruby.getBindings(ScriptContext.ENGINE_SCOPE).put("compiler_callback", compilerCallback);
             jruby.eval(sassScript);
-            final CompilationErrors compilationErrors = (CompilationErrors) jruby.getBindings(ScriptContext.ENGINE_SCOPE).get("compilation_errors");
-            if (compilationErrors.hasErrors()) {
-                for (CompilationErrors.CompilationError error : compilationErrors) {
-                    log.error("Compilation of template " + error.filename + " failed: " + error.message);
-                }
-                if (failOnError) {
-                    throw new MojoFailureException("SASS compilation encountered errors (see above for details).");
-                }
+            if (failOnError && compilerCallback.hadError()) {
+                throw new MojoFailureException("SASS compilation encountered errors (see above for details).");
             }
         }
         catch (final ScriptException e) {
@@ -196,12 +192,12 @@ public abstract class AbstractSassMojo extends AbstractMojo {
                 .append("')\n");
         }
 
-        // set up compilation error reporting
-        sassScript.append("java_import ");
-        sassScript.append(CompilationErrors.class.getName());
-        sassScript.append("\n");
-        sassScript.append("$compilation_errors = CompilationErrors.new\n");
-        sassScript.append("Sass::Plugin.on_compilation_error {|error, template, css| $compilation_errors.add(template, error.message) }\n");
+        // set up sass compiler callback for reporting
+        sassScript.append("Sass::Plugin.on_compilation_error {|error, template, css| $compiler_callback.compilationError(error.message, template, css) }\n");
+        sassScript.append("Sass::Plugin.on_updated_stylesheet {|template, css| $compiler_callback.updatedStylesheeet(template, css) }\n");
+        sassScript.append("Sass::Plugin.on_template_modified {|template| $compiler_callback.templateModified(template) }\n");
+        sassScript.append("Sass::Plugin.on_template_created {|template| $compiler_callback.templateCreated(template) }\n");
+        sassScript.append("Sass::Plugin.on_template_deleted {|template| $compiler_callback.templateDeleted(template) }\n");
 
         // make ruby give use some debugging info when requested
         if (log.isDebugEnabled()) {
