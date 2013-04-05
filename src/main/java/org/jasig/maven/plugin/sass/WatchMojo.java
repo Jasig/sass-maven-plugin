@@ -20,7 +20,6 @@ package org.jasig.maven.plugin.sass;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugin.logging.Log;
 
 /**
  * @goal watch
@@ -29,22 +28,15 @@ public class WatchMojo extends AbstractSassMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        final Log log = this.getLog();
+        getLog().info("Watching SASS Templates");
 
-        final String sassScript = buildSassScript();
+        // build sass script
+        final StringBuilder sassBuilder = new StringBuilder();
+        buildBasicSASSScript(sassBuilder);
+        sassBuilder.append("Sass::Plugin.watch");
+        final String sassScript = sassBuilder.toString();
 
-        //Execute the SASS Compliation Ruby Script
-        log.info("Watching SASS Templates");
+        // ...and execute
         executeSassScript(sassScript);
-    }
-
-    
-    protected String buildSassScript() throws MojoExecutionException {
-
-        final StringBuilder sassScript = new StringBuilder();
-        buildBasicSASSScript(sassScript);		
-        sassScript.append("Sass::Plugin.watch");
-
-        return sassScript.toString();
     }
 }
