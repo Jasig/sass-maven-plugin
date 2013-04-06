@@ -18,19 +18,20 @@
  */
 package org.jasig.maven.plugin.sass;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 
-import com.google.common.collect.ImmutableMap;
+import javax.script.ScriptContext;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
+import java.io.File;
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * Base for batching SASS Mojos.
@@ -108,6 +109,30 @@ public abstract class AbstractSassMojo extends AbstractMojo {
      */
     protected boolean useCompass;
 
+    /**
+     * Execute the SASS Compilation Ruby Script
+     */
+    protected void executeSassScript(String sassScript) throws MojoExecutionException, MojoFailureException {
+        final Log log = this.getLog();
+        System.setProperty("org.jruby.embed.localcontext.scope", "threadsafe");
+
+        log.debug("Execute SASS Ruby Script:\n" + sassScript);
+
+        final ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
+        final ScriptEngine jruby = scriptEngineManager.getEngineByName("jruby");
+        try {
+            CompilerCallback compilerCallback = new CompilerCallback(log);
+            jruby.getBindings(ScriptContext.ENGINE_SCOPE).put("compiler_callback", compilerCallback);
+            jruby.eval(sassScript);
+            if (failOnError && compilerCallback.hadError()) {
+                throw new MojoFailureException("SASS compilation encountered errors (see above for details).");
+            }
+        }
+        catch (final ScriptException e) {
+            throw new MojoExecutionException("Failed to execute SASS ruby script:\n" + sassScript, e);
+        }
+    }
+
     protected void buildBasicSASSScript(final StringBuilder sassScript) throws MojoExecutionException {
         final Log log = this.getLog();
 
@@ -126,7 +151,15 @@ public abstract class AbstractSassMojo extends AbstractMojo {
             sassScript.append("Compass::Frameworks.register_directory('jar:'+ File.join(Compass.base_directory, 'frameworks/blueprint'))\n");
         }
 
-        sassScript.append("Sass::Plugin.options.merge!(\n");
+        // Get all template locations from resources and set option 'template_location' and
+        // 'css_location' (to override default "./public/stylesheets/sass", "./public/stylesheets")
+        // remaining locations are added later with 'add_template_location'
+        final Iterator<Entry<String, String>> templateLocations = getTemplateLocations();
+        if (templateLocations.hasNext()) {
+            Entry<String, String> location = templateLocations.next();
+            sassOptions.put("template_location", "'" + location.getKey() + "'");
+            sassOptions.put("css_location", "'" + location.getValue() + "'");
+        }
 
         //If not explicitly set place the cache location in the target dir
         if (!this.sassOptions.containsKey("cache_location")) {
@@ -136,6 +169,7 @@ public abstract class AbstractSassMojo extends AbstractMojo {
         }
 
         //Add the plugin configuration options
+        sassScript.append("Sass::Plugin.options.merge!(\n");
         for (final Iterator<Entry<String, String>> entryItr = this.sassOptions.entrySet().iterator(); entryItr.hasNext();) {
             final Entry<String, String> optEntry = entryItr.next();
             final String opt = optEntry.getKey();
@@ -148,30 +182,42 @@ public abstract class AbstractSassMojo extends AbstractMojo {
         }
         sassScript.append(")\n");
 
-        // set up compilation error reporting
-        sassScript.append("java_import ");
-        sassScript.append(CompilationErrors.class.getName());
-        sassScript.append("\n");
-        sassScript.append("$compilation_errors = CompilationErrors.new\n");
-        sassScript.append("Sass::Plugin.on_compilation_error {|error, template, css| $compilation_errors.add(template, error.message) }\n");
-
-        //Add the SASS template locations
-        for (final Resource source : this.resources) {
-            for (final Entry<String, String> entry : source.getDirectoriesAndDestinations().entrySet()) {
-                log.info("Queing SASS Template for compile: " + entry.getKey() + " => " + entry.getValue());
-
-                sassScript.append("Sass::Plugin.add_template_location('")
-                    .append(entry.getKey())
-                    .append("', '")
-                    .append(entry.getValue())
-                    .append("')\n");
-            }
+        // add remaining template locations with 'add_template_location' (need to be done after options.merge)
+        while (templateLocations.hasNext()) {
+            Entry<String, String> location = templateLocations.next();
+            sassScript.append("Sass::Plugin.add_template_location('")
+                .append(location.getKey())
+                .append("', '")
+                .append(location.getValue())
+                .append("')\n");
         }
+
+        // set up sass compiler callback for reporting
+        sassScript.append("Sass::Plugin.on_compilation_error {|error, template, css| $compiler_callback.compilationError(error.message, template, css) }\n");
+        sassScript.append("Sass::Plugin.on_updated_stylesheet {|template, css| $compiler_callback.updatedStylesheeet(template, css) }\n");
+        sassScript.append("Sass::Plugin.on_template_modified {|template| $compiler_callback.templateModified(template) }\n");
+        sassScript.append("Sass::Plugin.on_template_created {|template| $compiler_callback.templateCreated(template) }\n");
+        sassScript.append("Sass::Plugin.on_template_deleted {|template| $compiler_callback.templateDeleted(template) }\n");
+
         // make ruby give use some debugging info when requested
         if (log.isDebugEnabled()) {
             sassScript.append("require 'pp'\npp Sass::Plugin.options\n");
-            sassScript.append("pp Compass::configuration\n");
+            if (useCompass) {
+                sassScript.append("pp Compass::configuration\n");
+            }
         }
+    }
+
+    private Iterator<Entry<String, String>> getTemplateLocations() {
+        final Log log = getLog();
+        List<Entry<String, String>> locations = new ArrayList<Entry<String, String>>();
+        for (final Resource source : this.resources) {
+            for (final Entry<String, String> entry : source.getDirectoriesAndDestinations().entrySet()) {
+                log.info("Queing SASS Template for compile: " + entry.getKey() + " => " + entry.getValue());
+                locations.add(entry);
+            }
+        }
+        return locations.iterator();
     }
 
 }
