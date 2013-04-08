@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:merge="http://maven.apache.org/plugin-merge" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
-	<parent>
+    <parent>
         <groupId>org.jasig.parent</groupId>
         <artifactId>jasig-parent</artifactId>
         <version>34</version>
-	</parent>
+    </parent>
 
-	<modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
     <groupId>org.jasig.maven</groupId>
     <artifactId>sass-maven-plugin</artifactId>
     <version>1.1.1-SNAPSHOT</version>
-	<packaging>maven-plugin</packaging>
+    <packaging>maven-plugin</packaging>
 
     <name>SASS Compiler Plugin</name>
     <description>Maven Plugin that compiles SASS files</description>
@@ -28,13 +28,15 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <compass.version>0.12.2</compass.version>
         <inotify.version>0.8.8</inotify.version>
+        <fsevent.version>0.9.3</fsevent.version>
+        <jruby.version>1.6.8</jruby.version>
     </properties>
     
     <dependencies>
         <dependency>
             <groupId>org.jruby</groupId>
             <artifactId>jruby-complete</artifactId>
-            <version>1.6.8</version>
+            <version>${jruby.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>
@@ -46,15 +48,46 @@
           <artifactId>commons-io</artifactId>
           <version>2.4</version>
         </dependency>
-		<dependency>
-		  <groupId>com.google.guava</groupId>
-		  <artifactId>guava</artifactId>
-		  <version>13.0.1</version>
-	    </dependency>
-	    
+        <dependency>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+          <version>13.0.1</version>
+        </dependency>
+
+        <!-- rubygems -->
+        <dependency>
+            <groupId>rubygems</groupId>
+            <artifactId>compass</artifactId>
+            <version>${compass.version}</version>
+            <type>gem</type>
+        </dependency>
+        <dependency>
+            <groupId>rubygems</groupId>
+            <artifactId>rb-inotify</artifactId>
+            <version>${inotify.version}</version>
+            <type>gem</type>
+        </dependency>
+        <dependency>
+            <groupId>rubygems</groupId>
+            <artifactId>rb-fsevent</artifactId>
+            <version>${fsevent.version}</version>
+            <type>gem</type>
+        </dependency>
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>target/rubygems/gems</directory>
+                <filtering>false</filtering>
+                <excludes>
+                    <exclude>**/spec/**</exclude>
+                    <exclude>**/test/**</exclude>
+                    <exclude>**/examples/**</exclude>
+                </excludes>
+                <targetPath>gems</targetPath>
+            </resource>
+        </resources>
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -80,11 +113,11 @@
                       <pluginExecutions>
                         <pluginExecution>
                           <pluginExecutionFilter>
-                            <groupId>org.codehaus.mojo</groupId>
-                            <artifactId>exec-maven-plugin</artifactId>
-                            <versionRange>[1.2.1,)</versionRange>
+                            <groupId>de.saumya.mojo</groupId>
+                            <artifactId>gem-maven-plugin</artifactId>
+                            <versionRange>[0.29.4,)</versionRange>
                             <goals>
-                              <goal>exec</goal>
+                              <goal>initialize</goal>
                             </goals>
                           </pluginExecutionFilter>
                           <action>
@@ -98,100 +131,40 @@
             </plugins>
         </pluginManagement>
         <plugins>
-            <!-- Downloads and installs the required Ruby GEMs into the classpath -->
+            <!-- Downloads and installs the required Ruby Gems -->
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>1.2.1</version>
+                <groupId>de.saumya.mojo</groupId>
+                <artifactId>gem-maven-plugin</artifactId>
+                <version>0.29.4</version>
                 <executions>
                     <execution>
-                        <id>install-compass</id>
-                        <phase>generate-resources</phase>
+                        <id>install-gems</id>
+                        <!-- downloads and unpacks gems -->
                         <goals>
-                            <goal>exec</goal>
+                            <goal>initialize</goal>
                         </goals>
                         <configuration>
-                            <executable>java</executable>
-                            <arguments>
-                                <argument>-classpath</argument>
-                                <classpath />
-                                <argument>org.jruby.Main</argument>
-                                <argument>-S</argument>
-                                <argument>gem</argument>
-                                <argument>install</argument>
-                                <argument>-i</argument>
-                                <argument>${project.build.directory}/classes</argument>
-                                <argument>--no-rdoc</argument>
-                                <argument>--no-ri</argument>
-                                <argument>--version</argument>
-                                <argument>${compass.version}</argument>
-                                <argument>compass</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>install-inotify</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <configuration>
-                            <executable>java</executable>
-                            <arguments>
-                                <argument>-classpath</argument>
-                                <classpath />
-                                <argument>org.jruby.Main</argument>
-                                <argument>-S</argument>
-                                <argument>gem</argument>
-                                <argument>install</argument>
-                                <argument>-i</argument>
-                                <argument>${project.build.directory}/classes</argument>
-                                <argument>--no-rdoc</argument>
-                                <argument>--no-ri</argument>
-                                <argument>--version</argument>
-                                <argument>${inotify.version}</argument>
-                                <argument>rb-inotify</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>install-rb-fsevent</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <configuration>
-                            <executable>java</executable>
-                            <arguments>
-                                <argument>-classpath</argument>
-                                <classpath />
-                                <argument>org.jruby.Main</argument>
-                                <argument>-S</argument>
-                                <argument>gem</argument>
-                                <argument>install</argument>
-                                <argument>-i</argument>
-                                <argument>${project.build.directory}/classes</argument>
-                                <argument>--no-rdoc</argument>
-                                <argument>--no-ri</argument>
-                                <argument>rb-fsevent</argument>
-                            </arguments>
+                            <installRDoc>false</installRDoc>
+                            <installRI>false</installRI>
+                            <includeOpenSSL>false</includeOpenSSL>
+                            <jrubyVersion>${jruby.version}</jrubyVersion>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
-                <plugin>
-                    <groupId>org.jasig.maven</groupId>
-                    <artifactId>maven-site-plugin</artifactId>
-                    <configuration>
-                        <defaultMergePolicy>MERGE</defaultMergePolicy>
-                        <reportPlugins combine.children="append">
-                            <plugin>
-                                <artifactId>maven-plugin-plugin</artifactId>
-                                <version>2.9</version>
-                            </plugin>
-                        </reportPlugins>
-                    </configuration>
-                </plugin>
+            <plugin>
+                <groupId>org.jasig.maven</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <configuration>
+                    <defaultMergePolicy>MERGE</defaultMergePolicy>
+                    <reportPlugins combine.children="append">
+                        <plugin>
+                            <artifactId>maven-plugin-plugin</artifactId>
+                            <version>2.9</version>
+                        </plugin>
+                    </reportPlugins>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
     <profiles>
@@ -205,4 +178,19 @@
             </distributionManagement>
         </profile>
     </profiles>
+
+    <!-- repository for ruby gems exposed as maven artifacts -->
+    <repositories>
+        <repository>
+            <id>rubygems-releases</id>
+            <url>http://rubygems-proxy.torquebox.org/releases</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 </project>
