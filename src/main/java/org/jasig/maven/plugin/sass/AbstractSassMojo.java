@@ -47,12 +47,6 @@ public abstract class AbstractSassMojo extends AbstractMojo {
      *   &lt;resource>
      *     &lt;source>
      *       &lt;directory>${basedir}/src/main/resources/css&lt;/directory>
-     *       &lt;includes>
-     *         &lt;include>&#42;&#42;&lt;/include>
-     *       &lt;/includes>
-     *       &lt;excludes>
-     *         &lt;exclude>&#42;&#42;/watch-settings&lt;/exclude>
-     *       &lt;/excludes>
      *     &lt;/source>
      *     &lt;destination>${project.build.directory}/css&lt;/destination>
      *   &lt;/resource>
