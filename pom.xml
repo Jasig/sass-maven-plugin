@@ -78,14 +78,16 @@
     <build>
         <resources>
             <resource>
-                <directory>target/rubygems/gems</directory>
+                <directory>target/rubygems</directory>
                 <filtering>false</filtering>
                 <excludes>
+                    <exclude>bin/**</exclude>
+                    <exclude>cache/**</exclude>
+                    <exclude>doc/**</exclude>
                     <exclude>**/spec/**</exclude>
                     <exclude>**/test/**</exclude>
                     <exclude>**/examples/**</exclude>
                 </excludes>
-                <targetPath>gems</targetPath>
             </resource>
         </resources>
         <pluginManagement>
