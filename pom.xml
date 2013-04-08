@@ -149,6 +149,7 @@
                             <installRDoc>false</installRDoc>
                             <installRI>false</installRI>
                             <includeOpenSSL>false</includeOpenSSL>
+                            <includeRubygemsInTestResources>false</includeRubygemsInTestResources>
                             <jrubyVersion>${jruby.version}</jrubyVersion>
                         </configuration>
                     </execution>
