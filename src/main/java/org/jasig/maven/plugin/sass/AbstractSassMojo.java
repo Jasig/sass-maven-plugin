@@ -65,9 +65,27 @@ public abstract class AbstractSassMojo extends AbstractMojo {
     protected List<Resource> resources;
 
     /**
+     * Defines paths where jruby will look for gems. E.g. a maven build could download
+     * gems into ${project.build.directory}/rubygems and a gemPath pointed to this
+     * directory. Finally, individual gems can be loaded via the &lt;gems> configuration.
+     *
+     * @parameter default-value="${project.build.directory}/rubygems"
+     */
+    protected String[] gemPaths = new String[0];
+
+    /**
+     * Defines gems to be loaded before Sass/Compass. This is useful to add gems
+     * with custom Sass functions or stylesheets. Gems that hook into Compass
+     * are transparently added to Sass' load_path.
+     *
+     * @parameter
+     */
+    protected String[] gems = new String[0];
+
+    /**
      * Build directory for the plugin.
      *
-     * @parameter expression="${buildDirectory}" default-value="${project.build.directory}
+     * @parameter expression="${buildDirectory}" default-value="${project.build.directory}"
      */
     protected File buildDirectory;
 
@@ -137,6 +155,23 @@ public abstract class AbstractSassMojo extends AbstractMojo {
         final Log log = this.getLog();
 
         sassScript.append("require 'rubygems'\n");
+
+        if (gemPaths.length > 0) {
+            sassScript.append("env = { 'GEM_PATH' => [\n");
+            for (final String gemPath : gemPaths) {
+                sassScript.append("    '").append(gemPath).append("',\n");
+            }
+            sassScript.setLength(sassScript.length() - 2); // remove trailing comma
+            sassScript.append("\n");
+            sassScript.append("] }\n");
+            sassScript.append("env['GEM_PATH'] += ENV['GEM_PATH'] unless ENV['GEM_PATH'].nil?\n");
+            sassScript.append("Gem.paths = env\n");
+        }
+
+        for (final String gem : gems) {
+            sassScript.append("require '").append(gem).append("'\n");
+        }
+
         sassScript.append("require 'sass/plugin'\n");
         sassScript.append("require 'java'\n");
 
