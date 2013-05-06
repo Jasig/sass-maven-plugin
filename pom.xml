@@ -41,7 +41,7 @@
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-plugin-api</artifactId>
-            <version>3.0.4</version>
+            <version>3.0.5</version>
         </dependency>
         <dependency>
           <groupId>commons-io</groupId>
@@ -51,7 +51,7 @@
         <dependency>
           <groupId>com.google.guava</groupId>
           <artifactId>guava</artifactId>
-          <version>13.0.1</version>
+          <version>14.0.1</version>
         </dependency>
 
         <!-- rubygems -->
@@ -59,18 +59,21 @@
             <groupId>rubygems</groupId>
             <artifactId>compass</artifactId>
             <version>${compass.version}</version>
+            <scope>provided</scope>
             <type>gem</type>
         </dependency>
         <dependency>
             <groupId>rubygems</groupId>
             <artifactId>rb-inotify</artifactId>
             <version>${inotify.version}</version>
+            <scope>provided</scope>
             <type>gem</type>
         </dependency>
         <dependency>
             <groupId>rubygems</groupId>
             <artifactId>rb-fsevent</artifactId>
             <version>${fsevent.version}</version>
+            <scope>provided</scope>
             <type>gem</type>
         </dependency>
     </dependencies>
@@ -180,20 +183,27 @@
                 </site>
             </distributionManagement>
         </profile>
+        <profile>
+            <id>gem-repo</id>
+            <activation>
+                <file>
+                    <exists>src/main/java/org/jasig/maven/plugin/sass/AbstractSassMojo.java</exists>
+                </file>
+            </activation>
+            <!-- repository for ruby gems exposed as maven artifacts -->
+            <repositories>
+                <repository>
+                    <id>rubygems-releases</id>
+                    <url>http://rubygems-proxy.torquebox.org/releases</url>
+                    <releases>
+                        <enabled>true</enabled>
+                        <updatePolicy>never</updatePolicy>
+                    </releases>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                </repository>
+            </repositories>
+        </profile>
     </profiles>
-
-    <!-- repository for ruby gems exposed as maven artifacts -->
-    <repositories>
-        <repository>
-            <id>rubygems-releases</id>
-            <url>http://rubygems-proxy.torquebox.org/releases</url>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>never</updatePolicy>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
 </project>
