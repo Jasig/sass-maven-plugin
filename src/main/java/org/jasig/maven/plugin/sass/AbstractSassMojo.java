@@ -18,20 +18,29 @@
  */
 package org.jasig.maven.plugin.sass;
 
-import com.google.common.collect.ImmutableMap;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugin.logging.Log;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-import java.io.File;
-import java.util.*;
-import java.util.Map.Entry;
+
+import org.apache.commons.io.FilenameUtils;
+import org.apache.maven.model.FileSet;
+import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.logging.Log;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * Base for batching SASS Mojos.
@@ -40,21 +49,25 @@ import java.util.Map.Entry;
 public abstract class AbstractSassMojo extends AbstractMojo {
 
     /**
-     * Sources for compilation with their destination directory containing SASS files.
+     * Sources for compilation with their destination directory containing SASS files. Allows
+     * for multiple resource sources and destinations. If specified it precludes the direct
+     * specification of sassSourceDirectory/relativeOutputDirectory/destination parameters.
+     * <br/>
      * Example configuration
      * <pre>
-     * &lt;resources>
-     *   &lt;resource>
-     *     &lt;source>
-     *       &lt;directory>${basedir}/src/main/resources/css&lt;/directory>
-     *     &lt;/source>
-     *     &lt;destination>${project.build.directory}/css&lt;/destination>
-     *   &lt;/resource>
-     * &lt;/resources>
+     *      &lt;resource>
+     *          &lt;source>
+     *              &lt;directory>${basedir}/src/main/webapp&lt;/directory>
+     *              &lt;includes>
+     *                  &lt;include>**&#47;scss&lt;/include>
+     *              &lt;/includes>
+     *          &lt;/source>
+     *          &lt;relativeOutputDirectory>..&lt;/relativeOutputDirectory>
+     *          &lt;destination>${project.build.directory}/${project.build.finalName}&lt;/destination>
+     *      &lt;/resource>
      * </pre>
      *
      * @parameter
-     * @required
      */
     protected List<Resource> resources;
 
@@ -120,6 +133,46 @@ public abstract class AbstractSassMojo extends AbstractMojo {
      * @parameter default-value="false"
      */
     protected boolean useCompass;
+
+    /**
+     * Directory containing SASS files, defaults to the Maven Web application sources directory (src/main/webapp)
+     *
+     * @parameter default-value="${basedir}/src/main/webapp" 
+     * @required
+     */
+    protected File sassSourceDirectory;
+    
+    /**
+     * Defines files in the source directories to include
+     * 
+     * Defaults to: "**&#47;scss"
+     *
+     * @parameter
+     */
+    protected String[] includes = new String[] { "**/scss" };
+ 
+    /**
+     * Defines which of the included files in the source directories to exclude (none by default).
+     *
+     * @parameter
+     */
+    protected String[] excludes;
+    
+    /**
+     * Defines an additional path section when calculating the destination for the SCSS file. Allows,
+     * for example "/media/skins/universality/coal/scss/portal.scss" to end up at "/media/skins/universality/coal/portal.css"
+     * by specifying ".."  
+     *
+     * @parameter default-value=".."
+     */
+    protected String relativeOutputDirectory;
+   
+    /**
+     * Where to put the compiled CSS files
+     *
+     * @parameter expression="${encoding}" default-value="${project.build.directory}/${project.build.finalName}
+     */
+    protected File destination;
 
     /**
      * Execute the SASS Compilation Ruby Script
@@ -239,8 +292,27 @@ public abstract class AbstractSassMojo extends AbstractMojo {
 
     private Iterator<Entry<String, String>> getTemplateLocations() {
         final Log log = getLog();
+        
+        List<Resource> r = this.resources;
+        
+        //If no resources specified
+        if (r == null) {
+            final Resource resource = new Resource();
+            resource.source = new FileSet();
+            resource.source.setDirectory(this.sassSourceDirectory.toString());
+            if (this.includes != null) {
+                resource.source.setIncludes(Arrays.asList(this.includes));
+            }
+            if (this.excludes != null) {
+                resource.source.setExcludes(Arrays.asList(this.excludes));
+            }
+            resource.relativeOutputDirectory = this.relativeOutputDirectory;
+            resource.destination = this.destination;
+            r = ImmutableList.of(resource);
+        }
+        
         List<Entry<String, String>> locations = new ArrayList<Entry<String, String>>();
-        for (final Resource source : this.resources) {
+        for (final Resource source : r) {
             for (final Entry<String, String> entry : source.getDirectoriesAndDestinations().entrySet()) {
                 log.info("Queing SASS Template for compile: " + entry.getKey() + " => " + entry.getValue());
                 locations.add(entry);
