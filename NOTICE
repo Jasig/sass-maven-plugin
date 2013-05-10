@@ -16,7 +16,11 @@ specific language governing permissions and limitations
 under the License.
 
 This project includes:
+  A powerful but elegant CSS compiler that makes CSS fun again. under LICENSE or MIT or MIT-LICENSE
+  A Real Stylesheet Framework under LICENSE or LICENSE-APACHE2 or LICENSE-GPL2
+  A Ruby wrapper for Linux's inotify, using FFI under MIT-LICENSE
   Commons IO under The Apache Software License, Version 2.0
+  File System State Monitor under LICENSE
   Guava: Google Core Libraries for Java under The Apache Software License, Version 2.0
   JRuby Complete under Common Public License - v 1.0 or GNU General Public License Version 2 or GNU Lesser General Public License Version 2.1
   Maven Artifact under The Apache Software License, Version 2.0
@@ -25,9 +29,12 @@ This project includes:
   Plexus :: Component Annotations under The Apache Software License, Version 2.0
   Plexus Classworlds under The Apache Software License, Version 2.0
   Plexus Common Utilities under The Apache Software License, Version 2.0
+  Pure ruby library for read/write, chunk-level access to PNG files under LICENSE
+  Ruby FFI under LGPL-3 or LICENSE
   SASS Compiler Plugin under Apache License Version 2.0
   Sisu Guava - Core Library under The Apache Software License, Version 2.0
   Sisu Guice - Core Library under The Apache Software License, Version 2.0
   Sisu-Inject-Bean : Aggregate OSGi bundle under The Apache Software License, Version 2.0 or Eclipse Public License, Version 1.0
   Sisu-Inject-Plexus : Aggregate OSGi bundle under Eclipse Public License, Version 1.0
+  Very simple & usable FSEvents API under LICENSE
 
