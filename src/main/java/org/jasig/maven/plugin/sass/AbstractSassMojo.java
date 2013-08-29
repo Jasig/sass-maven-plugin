@@ -226,7 +226,7 @@ public abstract class AbstractSassMojo extends AbstractMojo {
             log.info("Running with Compass enabled.");
             sassScript.append("require 'compass'\n");
             sassScript.append("require 'compass/exec'\n");
-            sassScript.append("Compass.add_project_configuration \n");
+            sassScript.append("Compass.add_project_configuration " + this.sassSourceDirectory.toString() + " \n");
             this.sassOptions.put("load_paths", "Compass.configuration.sass_load_paths");
             // manually specify these paths
             sassScript.append("Compass::Frameworks.register_directory('jar:'+ File.join(Compass.base_directory, 'frameworks/compass'))\n");
