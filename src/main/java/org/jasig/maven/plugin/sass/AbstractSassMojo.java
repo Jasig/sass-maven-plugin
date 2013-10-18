@@ -208,10 +208,16 @@ public abstract class AbstractSassMojo extends AbstractMojo {
             for (final String gemPath : gemPaths) {
                 sassScript.append("    '").append(gemPath).append("',\n");
             }
+
+            final String gemPath = System.getenv("GEM_PATH");
+            if (gemPath != null) {
+                for (final String p : gemPath.split(File.pathSeparator)) {
+                    sassScript.append("    '").append(p).append("',\n");
+                }
+            }
             sassScript.setLength(sassScript.length() - 2); // remove trailing comma
             sassScript.append("\n");
             sassScript.append("] }\n");
-            sassScript.append("env['GEM_PATH'] += ENV['GEM_PATH'] unless ENV['GEM_PATH'].nil?\n");
             sassScript.append("Gem.paths = env\n");
         }
 
