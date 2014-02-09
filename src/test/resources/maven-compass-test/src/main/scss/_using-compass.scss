@@ -1,0 +1,13 @@
+/* this is just here to demonstrate the use of Compass using the example from 
+	http://compass-style.org/help/tutorials/exclude_vendor_prefixes/ */
+
+@import 'compass/css3';
+
+/* prevent use of ms- prefixes */
+$experimental-support-for-microsoft: false;
+
+/* using the Compass border-radius and box-shadow mixin */
+.rounded {
+	@include border-radius(4px);
+	@include box-shadow($BlueColourTransp 2px 2px 10px);
+}
