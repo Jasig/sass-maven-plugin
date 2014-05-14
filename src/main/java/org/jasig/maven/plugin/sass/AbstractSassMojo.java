@@ -141,7 +141,15 @@ public abstract class AbstractSassMojo extends AbstractMojo {
      * @required
      */
     protected File sassSourceDirectory;
-    
+
+   /**
+     * SASS Config File, defaults (src/main/webapp/config.rb)
+     *
+     * @parameter default-value="${basedir}/src/main/webapp/config.rb" 
+     * @required
+     */
+    protected File sassConfigFile;
+ 
     /**
      * Defines files in the source directories to include
      * 
@@ -232,7 +240,7 @@ public abstract class AbstractSassMojo extends AbstractMojo {
             log.info("Running with Compass enabled.");
             sassScript.append("require 'compass'\n");
             sassScript.append("require 'compass/exec'\n");
-            sassScript.append("Compass.add_project_configuration \n");
+            sassScript.append("Compass.add_project_configuration(File.join('" + this.sassConfigFile.toString()+ "'))\n");
             this.sassOptions.put("load_paths", "Compass.configuration.sass_load_paths");
             // manually specify these paths
             sassScript.append("Compass::Frameworks.register_directory('jar:'+ File.join(Compass.base_directory, 'frameworks/compass'))\n");
