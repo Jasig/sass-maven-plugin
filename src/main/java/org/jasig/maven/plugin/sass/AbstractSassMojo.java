@@ -135,6 +135,14 @@ public abstract class AbstractSassMojo extends AbstractMojo {
     protected boolean useCompass;
 
     /**
+     * Compass Config File, defaults (${project.basedir}/config.rb)
+     *
+     * @parameter default-value="${project.basedir}/config.rb"
+     * @required
+     */
+    protected File compassConfigFile;
+
+    /**
      * Directory containing SASS files, defaults to the Maven Web application sources directory (src/main/webapp)
      *
      * @parameter default-value="${basedir}/src/main/webapp" 
@@ -226,7 +234,7 @@ public abstract class AbstractSassMojo extends AbstractMojo {
             log.info("Running with Compass enabled.");
             sassScript.append("require 'compass'\n");
             sassScript.append("require 'compass/exec'\n");
-            sassScript.append("Compass.add_project_configuration \n");
+            sassScript.append("Compass.add_project_configuration(File.join('" + this.compassConfigFile.toString()+ "'))\n");
             this.sassOptions.put("load_paths", "Compass.configuration.sass_load_paths");
             // manually specify these paths
             sassScript.append("Compass::Frameworks.register_directory('jar:'+ File.join(Compass.base_directory, 'frameworks/compass'))\n");
