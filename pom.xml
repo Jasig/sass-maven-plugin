@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.jasig.maven</groupId>
     <artifactId>sass-maven-plugin</artifactId>
-    <version>1.1.1</version>
+    <version>1.1.1.PATCHED-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
 
     <name>SASS Compiler Plugin</name>
@@ -27,6 +27,7 @@
         <project.build.targetVersion>1.6</project.build.targetVersion>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <compass.version>0.12.2</compass.version>
+	<sass.version>3.2.19</sass.version>
         <inotify.version>0.8.8</inotify.version>
         <fsevent.version>0.9.3</fsevent.version>
         <jruby.version>1.6.8</jruby.version>
@@ -59,6 +60,13 @@
             <groupId>rubygems</groupId>
             <artifactId>compass</artifactId>
             <version>${compass.version}</version>
+            <scope>provided</scope>
+            <type>gem</type>
+        </dependency>
+        <dependency>
+            <groupId>rubygems</groupId>
+            <artifactId>sass</artifactId>
+	    <version>${sass.version}</version>
             <scope>provided</scope>
             <type>gem</type>
         </dependency>
