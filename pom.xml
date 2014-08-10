@@ -191,6 +191,12 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <failIfNoTests>true</failIfNoTests>
+                    <includes>
+                        <include>**/*IntegrationTest.java</include>
+                    </includes>
+                </configuration>
             </plugin>
             <plugin>  
                 <!-- don't execute tests in test phase -->  
