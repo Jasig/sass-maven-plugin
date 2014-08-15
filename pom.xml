@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.jasig.maven</groupId>
     <artifactId>sass-maven-plugin</artifactId>
-    <version>1.1.2-SNAPSHOT</version>
+    <version>1.1.3-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
 
     <name>SASS Compiler Plugin</name>
@@ -26,9 +26,12 @@
         <project.build.sourceVersion>1.6</project.build.sourceVersion>
         <project.build.targetVersion>1.6</project.build.targetVersion>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <compass.version>0.12.2</compass.version>
+        <sass.version>3.4.0.rc.3</sass.version>
+        <compass.version>1.0.0.rc.1</compass.version>
         <inotify.version>0.8.8</inotify.version>
-        <fsevent.version>0.9.3</fsevent.version>
+        <fsevent.version>0.9.4</fsevent.version>
+        <json.version>1.8.1</json.version>
+        <oily_png.version>1.1.1</oily_png.version>
         <jruby.version>1.6.8</jruby.version>
     </properties>
     
@@ -57,6 +60,13 @@
         <!-- rubygems -->
         <dependency>
             <groupId>rubygems</groupId>
+            <artifactId>sass</artifactId>
+            <version>${sass.version}</version>
+            <scope>provided</scope>
+            <type>gem</type>
+        </dependency>
+        <dependency>
+            <groupId>rubygems</groupId>
             <artifactId>compass</artifactId>
             <version>${compass.version}</version>
             <scope>provided</scope>
@@ -73,6 +83,20 @@
             <groupId>rubygems</groupId>
             <artifactId>rb-fsevent</artifactId>
             <version>${fsevent.version}</version>
+            <scope>provided</scope>
+            <type>gem</type>
+        </dependency>
+        <dependency>
+            <groupId>rubygems</groupId>
+            <artifactId>json</artifactId>
+            <version>${json.version}</version>
+            <scope>provided</scope>
+            <type>gem</type>
+        </dependency>
+        <dependency>
+            <groupId>rubygems</groupId>
+            <artifactId>oily_png</artifactId>
+            <version>${oily_png.version}</version>
             <scope>provided</scope>
             <type>gem</type>
         </dependency>
