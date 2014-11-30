@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.jasig.parent</groupId>
         <artifactId>jasig-parent</artifactId>
-        <version>34</version>
+        <version>38</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -12,6 +12,10 @@
     <artifactId>sass-maven-plugin</artifactId>
     <version>1.1.2-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
+
+    <prerequisites>
+        <maven>2.2.1</maven>
+    </prerequisites>
 
     <name>SASS Compiler Plugin</name>
     <description>Maven Plugin that compiles SASS files</description>
@@ -26,10 +30,10 @@
         <project.build.sourceVersion>1.6</project.build.sourceVersion>
         <project.build.targetVersion>1.6</project.build.targetVersion>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <compass.version>0.12.2</compass.version>
-        <inotify.version>0.8.8</inotify.version>
-        <fsevent.version>0.9.3</fsevent.version>
-        <jruby.version>1.6.8</jruby.version>
+        <compass.version>1.0.1</compass.version>
+        <inotify.version>0.9.5</inotify.version>
+        <fsevent.version>0.9.4</fsevent.version>
+        <jruby.version>1.7.16.1</jruby.version>
     </properties>
     
     <dependencies>
@@ -41,7 +45,7 @@
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-plugin-api</artifactId>
-            <version>3.0.5</version>
+            <version>3.2.3</version>
         </dependency>
         <dependency>
           <groupId>commons-io</groupId>
@@ -51,7 +55,7 @@
         <dependency>
           <groupId>com.google.guava</groupId>
           <artifactId>guava</artifactId>
-          <version>14.0.1</version>
+          <version>18.0</version>
         </dependency>
 
         <!-- rubygems -->
@@ -103,7 +107,7 @@
                         <reportPlugins combine.children="append">
                             <plugin>
                                 <artifactId>maven-plugin-plugin</artifactId>
-                                <version>2.9</version>
+                                <version>3.2</version>
                             </plugin>
                         </reportPlugins>
                     </configuration>
@@ -140,7 +144,7 @@
             <plugin>
                 <groupId>de.saumya.mojo</groupId>
                 <artifactId>gem-maven-plugin</artifactId>
-                <version>0.29.4</version>
+                <version>1.0.3</version>
                 <executions>
                     <execution>
                         <id>install-gems</id>
@@ -166,7 +170,7 @@
                     <reportPlugins combine.children="append">
                         <plugin>
                             <artifactId>maven-plugin-plugin</artifactId>
-                            <version>2.9</version>
+                            <version>3.2</version>
                         </plugin>
                     </reportPlugins>
                 </configuration>
