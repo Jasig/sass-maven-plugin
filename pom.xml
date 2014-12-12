@@ -12,7 +12,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.jasig.maven</groupId>
 	<artifactId>sass-maven-plugin</artifactId>
-	<version>1.1.2.patch</version>
+	<version>1.1.2.smava</version>
 	<packaging>maven-plugin</packaging>
 
 	<name>SASS Compiler Plugin</name>
@@ -35,6 +35,11 @@
 		<json.version>1.8.1</json.version>
 		<oily_png.version>1.1.1</oily_png.version>
 		<jruby.version>1.7.11</jruby.version>
+
+		<upstreamVersion>2.0.3</upstreamVersion>
+		<upstream.url>https://github.com/kevva/pngquant-bin</upstream.url>
+		<extractDir>${project.build.directory}/pngquant-bin-${upstreamVersion}</extractDir>
+		<destDir>${project.build.outputDirectory}/pngquant</destDir>
 	</properties>
 
 	<dependencies>
@@ -205,6 +210,48 @@
 						</plugin>
 					</reportPlugins>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>wagon-maven-plugin</artifactId>
+				<version>1.0-beta-5</version>
+				<executions>
+					<execution>
+						<id>download-archive</id>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>download-single</goal>
+						</goals>
+						<configuration>
+							<url>${upstream.url}/archive</url>
+							<fromFile>v${upstreamVersion}.zip</fromFile>
+							<toDir>${project.build.directory}</toDir>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.7</version>
+				<executions>
+					<execution>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<target>
+								<echo message="unzip archive" />
+								<unzip src="${project.build.directory}/v${upstreamVersion}.zip" dest="${project.build.directory}" />
+
+								<echo message="moving resources" />
+								<move file="${extractDir}/package.json" toDir="${destDir}" />
+								<move file="${extractDir}/index.js" toDir="${destDir}" />
+								<move file="${extractDir}/vendor" toDir="${destDir}" />
+							</target>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
