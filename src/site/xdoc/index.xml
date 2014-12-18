@@ -29,7 +29,7 @@
 
         <section name="Welcome to the sass-maven-plugin Developers Site">
             <p>
-                The sass-maven-plugin is used to compile or watch SASS templates.
+                The sass-maven-plugin is used to compile or watch Sass templates.
             </p>
         </section>
     </body>
