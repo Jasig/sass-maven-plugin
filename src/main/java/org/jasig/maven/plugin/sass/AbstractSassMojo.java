@@ -48,6 +48,8 @@ import com.google.common.collect.ImmutableMap;
  */
 public abstract class AbstractSassMojo extends AbstractMojo {
 
+    public static final String SASS_CACHE = "sass_cache";
+
     /**
      * Sources for compilation with their destination directory containing SASS files. Allows
      * for multiple resource sources and destinations. If specified it precludes the direct
@@ -251,7 +253,7 @@ public abstract class AbstractSassMojo extends AbstractMojo {
 
         //If not explicitly set place the cache location in the target dir
         if (!this.sassOptions.containsKey("cache_location")) {
-            final File sassCacheDir = new File(this.buildDirectory, "sass_cache");
+            final File sassCacheDir = new File(this.buildDirectory, SASS_CACHE);
             final String sassCacheDirStr = sassCacheDir.toString();
             this.sassOptions.put("cache_location", "'" + FilenameUtils.separatorsToUnix(sassCacheDirStr) + "'");
         }
@@ -296,7 +298,7 @@ public abstract class AbstractSassMojo extends AbstractMojo {
         }
     }
 
-    private Iterator<Entry<String, String>> getTemplateLocations() {
+    protected Iterator<Entry<String, String>> getTemplateLocations() {
         final Log log = getLog();
         
         List<Resource> r = this.resources;
