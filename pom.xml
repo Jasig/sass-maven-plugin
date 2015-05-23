@@ -13,15 +13,15 @@
     <version>1.1.2-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
 
-    <name>SASS Compiler Plugin</name>
-    <description>Maven Plugin that compiles SASS files</description>
-    
+    <name>Sass Compiler Plugin</name>
+    <description>Maven Plugin that compiles Sass files</description>
+
     <scm>
         <connection>scm:git:git://github.com/Jasig/sass-maven-plugin.git</connection>
         <developerConnection>scm:git:git@github.com:Jasig/sass-maven-plugin.git</developerConnection>
         <url>https://github.com/Jasig/sass-maven-plugin</url>
     </scm>
-    
+
     <properties>
         <project.build.sourceVersion>1.6</project.build.sourceVersion>
         <project.build.targetVersion>1.6</project.build.targetVersion>
@@ -31,7 +31,7 @@
         <fsevent.version>0.9.3</fsevent.version>
         <jruby.version>1.6.8</jruby.version>
     </properties>
-    
+
     <dependencies>
         <dependency>
             <groupId>org.jruby</groupId>

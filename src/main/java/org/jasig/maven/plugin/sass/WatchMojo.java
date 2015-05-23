@@ -28,7 +28,7 @@ public class WatchMojo extends AbstractSassMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        getLog().info("Watching SASS Templates");
+        getLog().info("Watching Sass Templates");
 
         // build sass script
         final StringBuilder sassBuilder = new StringBuilder();

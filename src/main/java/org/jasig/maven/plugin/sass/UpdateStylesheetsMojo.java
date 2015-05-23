@@ -22,7 +22,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 
 /**
- * Mojo that compiles SASS Templates into CSS files. Uses JRuby to execute a generated script that calls the SASS GEM
+ * Mojo that compiles Sass Templates into CSS files. Uses JRuby to execute a generated script that calls the Sass gem
  *
  * @goal update-stylesheets
  * @phase process-sources
@@ -31,7 +31,7 @@ public class UpdateStylesheetsMojo extends AbstractSassMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        getLog().info("Compiling SASS Templates");
+        getLog().info("Compiling Sass Templates");
 
         // build sass script
         final StringBuilder sassBuilder = new StringBuilder();

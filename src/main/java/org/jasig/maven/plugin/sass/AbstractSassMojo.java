@@ -43,13 +43,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 /**
- * Base for batching SASS Mojos.
- * 
+ * Base for batching Sass Mojos.
+ *
  */
 public abstract class AbstractSassMojo extends AbstractMojo {
 
     /**
-     * Sources for compilation with their destination directory containing SASS files. Allows
+     * Sources for compilation with their destination directory containing Sass files. Allows
      * for multiple resource sources and destinations. If specified it precludes the direct
      * specification of sassSourceDirectory/relativeOutputDirectory/destination parameters.
      * <br/>
@@ -109,7 +109,7 @@ public abstract class AbstractSassMojo extends AbstractMojo {
      * If the value is a string it must by quoted in the maven configuration:
      * &lt;cache_location>'/tmp/sass'&lt;/cache_location> <br/>
      * If no options are set the default configuration set is used which is:
-     * 
+     *
      * <pre>
      * &lt;unix_newlines>true&lt;/unix_newlines>
      * &lt;cache>true&lt;/cache>
@@ -117,7 +117,7 @@ public abstract class AbstractSassMojo extends AbstractMojo {
      * &lt;cache_location>${project.build.directory}/sass_cache&lt;/cache_location>
      * &lt;style>:expanded&lt;/style>
      * </pre>
-     * 
+     *
      * @parameter
      */
     protected Map<String, String> sassOptions = new HashMap<String, String>(ImmutableMap.of(
@@ -135,38 +135,38 @@ public abstract class AbstractSassMojo extends AbstractMojo {
     protected boolean useCompass;
 
     /**
-     * Directory containing SASS files, defaults to the Maven Web application sources directory (src/main/webapp)
+     * Directory containing Sass files, defaults to the Maven Web application sources directory (src/main/webapp)
      *
-     * @parameter default-value="${basedir}/src/main/webapp" 
+     * @parameter default-value="${basedir}/src/main/webapp"
      * @required
      */
     protected File sassSourceDirectory;
-    
+
     /**
      * Defines files in the source directories to include
-     * 
+     *
      * Defaults to: "**&#47;scss"
      *
      * @parameter
      */
     protected String[] includes = new String[] { "**/scss" };
- 
+
     /**
      * Defines which of the included files in the source directories to exclude (none by default).
      *
      * @parameter
      */
     protected String[] excludes;
-    
+
     /**
      * Defines an additional path section when calculating the destination for the SCSS file. Allows,
      * for example "/media/skins/universality/coal/scss/portal.scss" to end up at "/media/skins/universality/coal/portal.css"
-     * by specifying ".."  
+     * by specifying ".."
      *
      * @parameter default-value=".."
      */
     protected String relativeOutputDirectory;
-   
+
     /**
      * Where to put the compiled CSS files
      *
@@ -175,13 +175,13 @@ public abstract class AbstractSassMojo extends AbstractMojo {
     protected File destination;
 
     /**
-     * Execute the SASS Compilation Ruby Script
+     * Execute the Sass Compilation Ruby Script
      */
     protected void executeSassScript(String sassScript) throws MojoExecutionException, MojoFailureException {
         final Log log = this.getLog();
         System.setProperty("org.jruby.embed.localcontext.scope", "threadsafe");
 
-        log.debug("Execute SASS Ruby Script:\n" + sassScript);
+        log.debug("Execute Sass Ruby Script:\n" + sassScript);
 
         final ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
         final ScriptEngine jruby = scriptEngineManager.getEngineByName("jruby");
@@ -190,11 +190,11 @@ public abstract class AbstractSassMojo extends AbstractMojo {
             jruby.getBindings(ScriptContext.ENGINE_SCOPE).put("compiler_callback", compilerCallback);
             jruby.eval(sassScript);
             if (failOnError && compilerCallback.hadError()) {
-                throw new MojoFailureException("SASS compilation encountered errors (see above for details).");
+                throw new MojoFailureException("Sass compilation encountered errors (see above for details).");
             }
         }
         catch (final ScriptException e) {
-            throw new MojoExecutionException("Failed to execute SASS ruby script:\n" + sassScript, e);
+            throw new MojoExecutionException("Failed to execute Sass ruby script:\n" + sassScript, e);
         }
     }
 
@@ -298,9 +298,9 @@ public abstract class AbstractSassMojo extends AbstractMojo {
 
     private Iterator<Entry<String, String>> getTemplateLocations() {
         final Log log = getLog();
-        
+
         List<Resource> r = this.resources;
-        
+
         //If no resources specified
         if (r == null) {
             final Resource resource = new Resource();
@@ -316,11 +316,11 @@ public abstract class AbstractSassMojo extends AbstractMojo {
             resource.destination = this.destination;
             r = ImmutableList.of(resource);
         }
-        
+
         List<Entry<String, String>> locations = new ArrayList<Entry<String, String>>();
         for (final Resource source : r) {
             for (final Entry<String, String> entry : source.getDirectoriesAndDestinations().entrySet()) {
-                log.info("Queueing SASS Template for compile: " + entry.getKey() + " => " + entry.getValue());
+                log.info("Queueing Sass Template for compile: " + entry.getKey() + " => " + entry.getValue());
                 locations.add(entry);
             }
         }

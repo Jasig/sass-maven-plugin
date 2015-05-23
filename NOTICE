@@ -31,7 +31,7 @@ This project includes:
   Plexus Common Utilities under The Apache Software License, Version 2.0
   Pure ruby library for read/write, chunk-level access to PNG files under LICENSE
   Ruby FFI under LGPL-3 or LICENSE
-  SASS Compiler Plugin under Apache License Version 2.0
+  Sass Compiler Plugin under Apache License Version 2.0
   Sisu Guava - Core Library under The Apache Software License, Version 2.0
   Sisu Guice - Core Library under The Apache Software License, Version 2.0
   Sisu-Inject-Bean : Aggregate OSGi bundle under The Apache Software License, Version 2.0 or Eclipse Public License, Version 1.0
