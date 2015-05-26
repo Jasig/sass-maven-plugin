@@ -81,6 +81,13 @@ public abstract class AbstractSassMojo extends AbstractMojo {
     protected String[] gemPaths = new String[0];
 
     /**
+     * Defines the path to the pngquant binary file
+     *
+     * @parameter default-value="${project.build.directory}/rubygems/pngquant/vendor/"
+     */
+    protected String pngquantPath;
+
+    /**
      * Defines gems to be loaded before Sass/Compass. This is useful to add gems
      * with custom Sass functions or stylesheets. Gems that hook into Compass
      * are transparently added to Sass' load_path.
@@ -235,8 +242,7 @@ public abstract class AbstractSassMojo extends AbstractMojo {
             sassScript.append("Compass.add_project_configuration \n");
             this.sassOptions.put("load_paths", "Compass.configuration.sass_load_paths");
             // manually specify these paths
-            sassScript.append("Compass::Frameworks.register_directory('jar:'+ File.join(Compass.base_directory, 'frameworks/compass'))\n");
-            sassScript.append("Compass::Frameworks.register_directory('jar:'+ File.join(Compass.base_directory, 'frameworks/blueprint'))\n");
+            sassScript.append("Compass::Frameworks.register_directory('jar:'+ File.join(Compass::Core.base_directory, 'stylesheets'))\n");
         }
 
         // Get all template locations from resources and set option 'template_location' and
@@ -294,6 +300,34 @@ public abstract class AbstractSassMojo extends AbstractMojo {
                 sassScript.append("pp Compass::configuration\n");
             }
         }
+        // Add callback to compress sprite
+        sassScript.append("pngquant = \"" + pngquantPath + "\" + (\n" +
+            "  case RbConfig::CONFIG['host_os']\n" +
+            "    when /mswin|msys|mingw|cygwin|bccwin|wince|emc/\n" +
+            "      case RbConfig::CONFIG['host_cpu']\n" +
+            "        when /64/ then 'win/x64/pngquant'\n" +
+            "        when /32/ then 'win/x86/pngquant'\n" +
+            "      end\n" +
+            "    when /darwin|mac os/\n" +
+            "      case RbConfig::CONFIG['host_cpu']\n" +
+            "        when /64/ then 'mac/x64/pngquant'\n" +
+            "        when /32/ then 'mac/x86/pngquant'\n" +
+            "      end\n" +
+            "    when /linux|solaris|bsd/\n" +
+            "      case RbConfig::CONFIG['host_cpu']\n" +
+            "        when /64/ then 'linux/x64/pngquant'\n" +
+            "        when /32/ then 'linux/x86/pngquant'\n" +
+            "      end\n" +
+            "  end\n" +
+            ")\n");
+        sassScript.append("Compass.configuration.on_sprite_saved do |filename|\n" +
+            "  if Sass::Plugin.options[:compress_sprites] && File.exists?(pngquant)\n" +
+            "    puts \"compressing #{filename}\"\n" +
+            "    FileUtils.chmod 0755, pngquant\n" +
+            "    system pngquant + \" --force --ext='.png' 64 #{filename}\"\n" +
+            "  end\n" +
+            "end\n"
+        );
     }
 
     private Iterator<Entry<String, String>> getTemplateLocations() {
