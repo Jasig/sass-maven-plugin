@@ -235,8 +235,7 @@ public abstract class AbstractSassMojo extends AbstractMojo {
             sassScript.append("Compass.add_project_configuration \n");
             this.sassOptions.put("load_paths", "Compass.configuration.sass_load_paths");
             // manually specify these paths
-            sassScript.append("Compass::Frameworks.register_directory('jar:'+ File.join(Compass.base_directory, 'frameworks/compass'))\n");
-            sassScript.append("Compass::Frameworks.register_directory('jar:'+ File.join(Compass.base_directory, 'frameworks/blueprint'))\n");
+            sassScript.append("Compass::Frameworks.register_directory('jar:'+ File.join(Compass::Core.base_directory, 'stylesheets'))\n");
         }
 
         // Get all template locations from resources and set option 'template_location' and
