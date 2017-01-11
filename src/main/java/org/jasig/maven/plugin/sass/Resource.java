@@ -54,6 +54,9 @@ public class Resource {
 		final DirectoryScanner scanner = new DirectoryScanner();
         scanner.setBasedir(sourceDirectory);
     	scanner.setIncludes(source.getIncludes().toArray(new String[source.getIncludes().size()]));
+
+    	// Add .svn folders by defauly
+    	source.getExcludes().add("**/.svn/**");
     	scanner.setExcludes(source.getExcludes().toArray(new String[source.getExcludes().size()]));
 
         // Add default excludes to the list of excludes (see http://plexus.codehaus.org/plexus-utils/apidocs/org/codehaus/plexus/util/AbstractScanner.html#DEFAULTEXCLUDES
