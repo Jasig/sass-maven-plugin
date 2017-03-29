@@ -1,0 +1,8 @@
+language: java
+before_install:
+  - unset GEM_PATH
+script: mvn -e verify
+jdk:
+  - openjdk7
+  - oraclejdk7
+  - oraclejdk8

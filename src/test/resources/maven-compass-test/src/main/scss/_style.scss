@@ -1,0 +1,18 @@
+.todo {
+	background: url("../img/error.png") no-repeat scroll -12px 1px transparent;
+	padding-left: 16px;
+	text-align: center;
+	color: #f00;
+	border: 1px solid;
+	font-style: italic;
+	font-variant: small-caps;
+}
+
+.hidden {
+	display: none;
+}
+
+.title {
+	color: $BlueColourDarker;
+	border-bottom: 1px solid $BlueColourLighter;
+}
