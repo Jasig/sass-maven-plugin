@@ -2,6 +2,8 @@ sass-maven-plugin
 =================
 # NOTICE: Plug-in no longer supported
 
+![unmaintained](https://img.shields.io/maintenance/no/2015.svg)
+
 This version is no longer maintained.  Refer to more recent forks at https://github.com/Jasig/sass-maven-plugin/network for more up to date versions.
 
 # Overview
